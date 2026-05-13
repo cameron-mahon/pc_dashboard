@@ -1,5 +1,5 @@
 import { get, put, uid, esc } from './store.js';
-import { currentUser } from './auth.js';
+import { currentUser, isVisitor } from './auth.js';
 
 export function initRecs() {
   const bubble = document.querySelector('[data-open-recs]');
@@ -68,7 +68,9 @@ export function initRecs() {
     panel.classList.remove('open');
   });
 
+  if (isVisitor(user)) { input.style.display = 'none'; }
   input.addEventListener('keydown', e => {
+    if (isVisitor(user)) return;
     if (e.key === 'Enter' && input.value.trim()) {
       const recs = getRecs();
       recs.push({ id: uid(), who: user.name, text: input.value.trim() });

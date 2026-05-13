@@ -1,11 +1,12 @@
 import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
-import { currentUser } from './auth.js';
+import { currentUser, isVisitor } from './auth.js';
 
 export function initLobby() {
   if (!document.querySelector('[data-lobby]')) return;
   const user = currentUser();
   const isAdmin = user && (user.role === 'admin' || user.role === 'superadmin');
+  const viewOnly = isVisitor(user);
 
   // ---- Note of the day ----
   const noteBox = document.querySelector('[data-note-box]');
@@ -14,7 +15,9 @@ export function initLobby() {
     noteBox.innerHTML = n
       ? `<div class="note-text">${esc(n)}</div><div class="note-edit">edit note</div>`
       : `<div class="note-text is-empty">No note posted</div><div class="note-edit">post a note</div>`;
-    noteBox.querySelector('.note-edit').addEventListener('click', () => {
+    if (viewOnly) { const edit = noteBox.querySelector('.note-edit'); if (edit) edit.style.display = 'none'; }
+    noteBox.querySelector('.note-edit')?.addEventListener('click', () => {
+      if (viewOnly) return;
       openModal('Note of the Day', [
         { key: 'text', label: 'Note', type: 'textarea', placeholder: 'What should everyone know today?' }
       ], d => {

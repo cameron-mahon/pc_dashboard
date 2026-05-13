@@ -32,9 +32,33 @@ export function assignCrabName() {
   const users = getUsers();
   if (users.length === 0) return CRABS[0];
   const taken = new Set(users.map(u => u.name));
-  const available = CRABS.filter(c => !taken.has(c));
+  const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
   if (!available.length) return 'Crab #' + (users.length + 1);
   return available[Math.floor(Math.random() * available.length)];
+}
+
+export function isVisitor(user) {
+  return user && user.role === 'visitor';
+}
+
+export function signupVisitor() {
+  const users = getUsers();
+  const existing = users.find(u => u.role === 'visitor');
+  if (existing) {
+    saveSession({ userId: existing.id });
+    return { ok: true, user: existing };
+  }
+  const user = {
+    id: crypto.randomUUID(),
+    name: 'Pea',
+    password: '',
+    role: 'visitor',
+    created: Date.now()
+  };
+  users.push(user);
+  saveUsers(users);
+  saveSession({ userId: user.id });
+  return { ok: true, user };
 }
 
 export function signup(password) {

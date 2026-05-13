@@ -1,10 +1,12 @@
 import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
+import { currentUser, isVisitor } from './auth.js';
 
 const LANE_KEYS = { todo: 'pipe_todo', wip: 'pipe_wip', done: 'pipe_done' };
 
 export function initPipeline() {
   if (!document.querySelector('[data-pipeline]')) return;
+  const viewOnly = isVisitor(currentUser());
 
   const laneEls = {
     todo: document.querySelector('[data-lane="todo"]'),
@@ -26,8 +28,8 @@ export function initPipeline() {
       el.innerHTML = '<div class="lane-empty">Drop tasks here</div>';
     } else {
       el.innerHTML = cards.map(c =>
-        `<div class="card" draggable="true" data-id="${c.id}" data-lane="${name}">
-          <span class="x">×</span>
+        `<div class="card" ${viewOnly ? '' : 'draggable="true"'} data-id="${c.id}" data-lane="${name}">
+          ${viewOnly ? '' : '<span class="x">×</span>'}
           <div class="card-title">${esc(c.title)}</div>
           ${c.detail ? `<div class="card-detail">${esc(c.detail)}</div>` : ''}
           ${c.meta ? `<div class="card-meta">${esc(c.meta)}</div>` : ''}
@@ -57,7 +59,12 @@ export function initPipeline() {
   function renderAll() { renderLane('todo'); renderLane('wip'); renderLane('done'); }
   renderAll();
 
-  document.querySelectorAll('[data-drop]').forEach(laneWrapper => {
+  if (viewOnly) {
+    document.querySelector('[data-pipe-add]').style.display = 'none';
+    document.querySelector('[data-issue-add]').style.display = 'none';
+  }
+
+  if (!viewOnly) document.querySelectorAll('[data-drop]').forEach(laneWrapper => {
     const targetName = laneWrapper.dataset.drop;
     laneWrapper.addEventListener('dragover', e => {
       e.preventDefault();
@@ -115,7 +122,7 @@ export function initPipeline() {
       if (iss.severity === 'critical') cls += ' critical';
       if (iss.status === 'resolved') cls += ' resolved';
       return `<div class="${cls}" data-id="${iss.id}">
-        <span class="x">×</span>
+        ${viewOnly ? '' : '<span class="x">×</span>'}
         <div class="issue-title">${esc(iss.title)}</div>
         <div class="issue-meta">
           <span>${esc(iss.reporter || '—')}</span>
@@ -131,6 +138,7 @@ export function initPipeline() {
         renderIssues();
       });
     });
+    if (viewOnly) return;
     issueBox.querySelectorAll('[data-cycle]').forEach(badge => {
       badge.addEventListener('click', () => {
         const id = badge.dataset.cycle;

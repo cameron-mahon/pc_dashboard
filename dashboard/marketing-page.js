@@ -1,9 +1,10 @@
 import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
-import { currentUser } from './auth.js';
+import { currentUser, isVisitor } from './auth.js';
 
 export function initMarketing() {
   if (!document.querySelector('[data-marketing]')) return;
+  const viewOnly = isVisitor(currentUser());
 
   const box = document.querySelector('[data-campaigns]');
 
@@ -20,16 +21,16 @@ export function initMarketing() {
     box.innerHTML = camps.map(camp => {
       const cls = 'campaign' + (camp.active ? ' active' : '');
       return `<div class="${cls}" data-id="${camp.id}">
-        <span class="x">×</span>
+        ${viewOnly ? '' : '<span class="x">×</span>'}
         <div class="campaign-head">
           <div class="campaign-name">${esc(camp.name)}</div>
           <div class="campaign-controls">
             <span class="campaign-badge">${camp.active ? 'in progress' : 'paused'}</span>
-            <button class="btn btn-sm btn-ghost" data-toggle="${camp.id}">${camp.active ? 'Pause' : 'Activate'}</button>
+            ${viewOnly ? '' : `<button class="btn btn-sm btn-ghost" data-toggle="${camp.id}">${camp.active ? 'Pause' : 'Activate'}</button>`}
           </div>
         </div>
         <div class="surface campaign-surface" data-campaign-surface="${camp.id}"></div>
-        <button class="btn btn-add" style="margin-top:10px;" data-file-add="${camp.id}"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>File</button>
+        ${viewOnly ? '' : `<button class="btn btn-add" style="margin-top:10px;" data-file-add="${camp.id}"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>File</button>`}
       </div>`;
     }).join('');
 
@@ -141,7 +142,8 @@ export function initMarketing() {
 
   renderCampaigns();
 
-  document.querySelector('[data-campaign-add]').addEventListener('click', () => {
+  if (viewOnly) { document.querySelector('[data-campaign-add]').style.display = 'none'; }
+  else document.querySelector('[data-campaign-add]').addEventListener('click', () => {
     openModal('New Campaign', [
       { key: 'name', label: 'Campaign name', placeholder: 'e.g. launch teaser, investor outreach...' }
     ], d => {
@@ -175,10 +177,10 @@ export function initMarketing() {
       `<div class="workbench-block" data-wb="${wb.id}">
         <div class="panel-header">
           <div class="panel-title">${esc(wb.name)}</div>
-          ${wbs.length > 1 ? `<span class="wb-x" data-wb-remove="${wb.id}">&times;</span>` : ''}
+          ${!viewOnly && wbs.length > 1 ? `<span class="wb-x" data-wb-remove="${wb.id}">&times;</span>` : ''}
         </div>
         <div class="surface workbench-surface" data-wb-surface="${wb.id}"></div>
-        <button class="btn btn-add" data-wb-add="${wb.id}" style="margin-top:8px;"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add Item</button>
+        <button class="btn btn-add" data-wb-add="${wb.id}" style="margin-top:8px;${viewOnly ? 'display:none;' : ''}"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add Item</button>
       </div>`
     ).join('');
 
@@ -270,6 +272,10 @@ export function initMarketing() {
     el.dataset.fileId = file.id;
     el.style.left = (file.x || 0) + 'px';
     el.style.top = (file.y || 0) + 'px';
+    if (viewOnly) {
+      el.innerHTML = `<span class="file-name">${esc(file.name)}</span>`;
+      return el;
+    }
     el.innerHTML = `<span class="x">×</span><span class="file-name">${esc(file.name)}</span>`;
 
     el.querySelector('.x').addEventListener('click', e => {
@@ -387,9 +393,11 @@ export function initMarketing() {
     el.style.top = (ref.y || 0) + 'px';
     const expandSVG = `<svg viewBox="0 0 16 16"><polyline points="10,2 14,2 14,6"/><line x1="14" y1="2" x2="9" y2="7"/><polyline points="6,14 2,14 2,10"/><line x1="2" y1="14" x2="7" y2="9"/></svg>`;
     const shrinkSVG = `<svg viewBox="0 0 16 16"><polyline points="14,6 10,6 10,2"/><line x1="10" y1="6" x2="15" y2="1"/><polyline points="2,10 6,10 6,14"/><line x1="6" y1="10" x2="1" y2="15"/></svg>`;
-    el.innerHTML = `<span class="x">×</span><div class="ref-toggle" data-ref-toggle>${expandSVG}</div><div class="ref-embed">${getEmbedHTML(ref)}</div>${ref.note ? `<div class="ref-note">${esc(ref.note)}</div>` : ''}`;
+    el.innerHTML = viewOnly
+      ? `<div class="ref-toggle" data-ref-toggle>${expandSVG}</div><div class="ref-embed">${getEmbedHTML(ref)}</div>${ref.note ? `<div class="ref-note">${esc(ref.note)}</div>` : ''}`
+      : `<span class="x">×</span><div class="ref-toggle" data-ref-toggle>${expandSVG}</div><div class="ref-embed">${getEmbedHTML(ref)}</div>${ref.note ? `<div class="ref-note">${esc(ref.note)}</div>` : ''}`;
 
-    el.querySelector('.x').addEventListener('click', e => {
+    if (!viewOnly) el.querySelector('.x').addEventListener('click', e => {
       e.stopPropagation();
       const wbs = getWBs();
       const wb = wbs.find(w => w.id === wbId);
@@ -408,6 +416,8 @@ export function initMarketing() {
       toggle.innerHTML = expanded ? shrinkSVG : expandSVG;
       fitSurface(surface, wbId);
     });
+
+    if (viewOnly) return el;
 
     let drag = null;
     el.onpointerdown = e => {
@@ -444,7 +454,8 @@ export function initMarketing() {
 
   renderWorkbenches();
 
-  wbAdd.addEventListener('click', () => {
+  if (viewOnly) { wbAdd.style.display = 'none'; }
+  else wbAdd.addEventListener('click', () => {
     openModal('New Workbench', [
       { key: 'name', label: 'Workbench name', placeholder: 'e.g. assets, copy, research...' }
     ], d => {

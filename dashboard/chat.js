@@ -1,5 +1,5 @@
 import { get, put, esc } from './store.js';
-import { currentUser } from './auth.js';
+import { currentUser, isVisitor } from './auth.js';
 import 'emoji-picker-element';
 
 const KEY = 'chat';
@@ -144,7 +144,12 @@ export function initInlineChat() {
   render();
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
-  bindInput(document.querySelector('.chat-inline input[data-act="send"]'));
+  if (isVisitor(currentUser())) {
+    const row = document.querySelector('.chat-inline .chat-input-row');
+    if (row) row.style.display = 'none';
+  } else {
+    bindInput(document.querySelector('.chat-inline input[data-act="send"]'));
+  }
 }
 
 export function initFloatingChat() {
@@ -219,6 +224,13 @@ export function initFloatingChat() {
   render();
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
-  bindInput(panel.querySelector('input[data-act="send"]'));
-  bindToolbar(panel);
+  if (isVisitor(currentUser())) {
+    const inp = panel.querySelector('.chat-panel-input');
+    const tb = panel.querySelector('.chat-panel-toolbar');
+    if (inp) inp.style.display = 'none';
+    if (tb) tb.style.display = 'none';
+  } else {
+    bindInput(panel.querySelector('input[data-act="send"]'));
+    bindToolbar(panel);
+  }
 }

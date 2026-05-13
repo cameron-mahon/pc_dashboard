@@ -72,10 +72,13 @@
     Don't have an account? <span>Sign up</span>
   </div>
   <div class="login-role-note" data-role-note></div>
+  <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;text-align:center;">
+    <button class="btn btn-ghost" data-visit style="width:100%;justify-content:center;font-size:12px;color:var(--text-3);">Just looking? <strong>Visit as Pea Crab</strong></button>
+  </div>
 </div>
 
 <script type="module">
-import { signup, login, currentUser, getUsers, assignCrabName } from './auth.js';
+import { signup, login, signupVisitor, currentUser, getUsers, assignCrabName } from './auth.js';
 import { get, put } from './store.js';
 
 // migrate old "X Crab" names
@@ -153,6 +156,11 @@ function submit() {
 submitBtn.addEventListener('click', submit);
 passInput.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') passInput.focus(); });
+
+document.querySelector('[data-visit]').addEventListener('click', () => {
+  signupVisitor();
+  window.location.href = 'index.html';
+});
 
 updateUI();
 </script>

@@ -1,5 +1,6 @@
 import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
+import { currentUser, isVisitor } from './auth.js';
 
 export function initSurface(roomId, surfaceEl, addBtn) {
   if (!surfaceEl) surfaceEl = document.querySelector(`[data-room-surface="${roomId}"]`);
@@ -23,15 +24,19 @@ export function initSurface(roomId, surfaceEl, addBtn) {
     el.dataset.fileId = file.id;
     el.style.left = (file.x || 0) + 'px';
     el.style.top = (file.y || 0) + 'px';
-    el.innerHTML = `<span class="x">×</span><span class="file-name">${esc(file.name)}</span>`;
+    const vo = isVisitor(currentUser());
+    el.innerHTML = vo
+      ? `<span class="file-name">${esc(file.name)}</span>`
+      : `<span class="x">×</span><span class="file-name">${esc(file.name)}</span>`;
 
-    el.querySelector('.x').addEventListener('click', e => {
+    if (!vo) el.querySelector('.x').addEventListener('click', e => {
       e.stopPropagation();
       saveFiles(getFiles().filter(f => f.id !== file.id));
       el.remove();
     });
 
     let drag = null;
+    if (vo) return el;
     el.addEventListener('pointerdown', e => {
       if (e.target.closest('.x')) return;
       e.preventDefault();
@@ -66,7 +71,8 @@ export function initSurface(roomId, surfaceEl, addBtn) {
 
   render();
 
-  if (addBtn) {
+  if (addBtn && isVisitor(currentUser())) addBtn.style.display = 'none';
+  if (addBtn && !isVisitor(currentUser())) {
     addBtn.addEventListener('click', () => {
       openModal('Add', [
         { key: 'name', label: 'Name', placeholder: 'File, document, link, note...' }
