@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Generic workbench — sketch</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f3ee; color: #2c2c2a; padding: 24px; min-height: 100vh; position: relative; }
+  .page { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .workbench { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 16px; min-height: 380px; display: flex; flex-direction: column; gap: 12px; }
+  .surface { flex: 1; background: #faf9f4; border-radius: 6px; min-height: 280px; display: flex; align-items: center; justify-content: center; color: #aaa; font-size: 13px; }
+  .tool-tray { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 10px; }
+  .tool-tray-label { font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tools { display: flex; gap: 8px; }
+  .tool { flex: 1; padding: 10px; background: #f4f3ee; border: 0.5px solid #ddd; border-radius: 6px; text-align: center; font-size: 12px; color: #444; }
+  .chat-bubble { position: fixed; bottom: 24px; right: 24px; width: 48px; height: 48px; background: #fff; border: 0.5px solid #bbb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="workbench">
+    <div class="surface">workbench surface — work in progress sits here, exactly as you left it</div>
+  </div>
+
+  <div class="tool-tray">
+    <div class="tool-tray-label">tool tray</div>
+    <div class="tools">
+      <div class="tool">tool 1</div>
+      <div class="tool">tool 2</div>
+      <div class="tool">tool 3</div>
+      <div class="tool">tool 4</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="chat-bubble" title="open chat">💬</div>
+</body>
+</html>

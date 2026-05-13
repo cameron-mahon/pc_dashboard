@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Carb</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<nav class="sidebar" data-sidebar>
+  <div class="sidebar-brand">project carb</div>
+  <div class="sidebar-nav"></div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-profile" data-sidebar-profile></div>
+</nav>
+
+<div class="main-scroll">
+<div class="lobby-model-bg">
+  <model-viewer
+    src="LuHar.glb"
+    camera-controls
+    auto-rotate
+    auto-rotate-delay="0"
+    rotation-per-second="12deg"
+    interaction-prompt="none"
+    style="width:100%;height:100%;"
+  ></model-viewer>
+</div>
+<div class="main" data-lobby>
+
+  <!-- group chat inline -->
+  <div class="panel chat-inline">
+    <div class="panel-header">
+      <div class="panel-title">Group Chat</div>
+    </div>
+    <div class="chat-list"></div>
+    <div class="chat-input-row">
+      <input data-act="send" placeholder="Say something...">
+    </div>
+  </div>
+
+  <!-- note -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Note of the Day</div>
+    </div>
+    <div data-note-box></div>
+  </div>
+
+  <!-- tasks -->
+  <div class="columns">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Your Tasks</div>
+        <button class="btn btn-add" data-my-add><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add</button>
+      </div>
+      <div data-my-tasks></div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Unclaimed</div>
+        <button class="btn btn-add" data-gen-add><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add</button>
+      </div>
+      <div data-gen-tasks></div>
+    </div>
+  </div>
+
+  <!-- gantt -->
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-title">Project Timeline</div>
+      <button class="btn btn-add" data-gantt-add><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add</button>
+    </div>
+    <div data-gantt></div>
+  </div>
+
+  <!-- rooms -->
+  <div class="rooms-section">
+    <div data-room-links></div>
+    <button class="btn btn-add" data-room-add style="margin-top:8px;"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>New Room</button>
+  </div>
+
+</div>
+</div>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

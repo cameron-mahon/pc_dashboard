@@ -1,0 +1,18 @@
+{
+  "name": "pc-dashboard",
+  "version": "1.0.0",
+  "description": "A project management dashboard for Project Carb. Built so teammembers have the least amount of friction possible to:",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite dashboard --port 3000 --open"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@google/model-viewer": "^4.2.0",
+    "emoji-picker-element": "^1.29.1",
+    "vite": "^8.0.12"
+  }
+}

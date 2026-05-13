@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Marketing workbench — sketch</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f3ee; color: #2c2c2a; padding: 24px; min-height: 100vh; position: relative; }
+  .page { max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .campaign { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 16px; }
+  .campaign.active { border: 1.5px solid #185fa5; }
+  .campaign-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 13px; }
+  .campaign.active .campaign-header { color: #185fa5; font-weight: 500; }
+  .campaign:not(.active) .campaign-header { color: #666; }
+  .files-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .file { aspect-ratio: 1; background: #faf9f4; border: 0.5px solid #ddd; border-radius: 6px; padding: 10px; cursor: grab; overflow: hidden; display: flex; flex-direction: column; }
+  .file:active { cursor: grabbing; }
+  .file-type { font-size: 10px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .file-content { flex: 1; font-size: 11px; color: #333; line-height: 1.4; overflow: hidden; }
+  .file-image { flex: 1; background: linear-gradient(135deg, #c0dd97 0%, #639922 100%); border-radius: 4px; }
+  .file-image-2 { flex: 1; background: linear-gradient(135deg, #f4c0d1 0%, #d4537e 100%); border-radius: 4px; }
+  .file-video { flex: 1; background: #2c2c2a; border-radius: 4px; position: relative; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 20px; }
+  .file-name { font-size: 10px; color: #666; margin-top: 6px; }
+  .tool-tray { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 10px; }
+  .tool-tray-label { font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tools { display: flex; gap: 8px; }
+  .tool { flex: 1; padding: 10px; background: #f4f3ee; border: 0.5px solid #ddd; border-radius: 6px; text-align: center; font-size: 12px; color: #444; cursor: pointer; }
+  .tool:hover { background: #ebeae5; }
+  /* floating chat */
+  .chat-bubble { position: fixed; bottom: 24px; right: 24px; width: 48px; height: 48px; background: #fff; border: 0.5px solid #bbb; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+  .chat-bubble:hover { background: #faf9f4; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="campaign active">
+    <div class="campaign-header">
+      <span>campaign: launch teaser (in progress)</span>
+      <span style="font-size: 11px; color: #888;">drag files to organize</span>
+    </div>
+    <div class="files-grid">
+      <div class="file">
+        <div class="file-type">post · IG</div>
+        <div class="file-content">building something we can't quite show you yet. the prints are getting wild. drop date soon. #projectcarb</div>
+        <div class="file-name">ig_teaser_v3</div>
+      </div>
+      <div class="file">
+        <div class="file-type">post · X</div>
+        <div class="file-content">we've been quiet for a reason 🧵 1/ what if every object you printed could also teach the system how to print it better</div>
+        <div class="file-name">tweet_thread_1</div>
+      </div>
+      <div class="file">
+        <div class="file-type">image</div>
+        <div class="file-image"></div>
+        <div class="file-name">hero_image_v3</div>
+      </div>
+      <div class="file">
+        <div class="file-type">notes</div>
+        <div class="file-content">tone: confident but not cocky. emphasize the loop — print, scan, learn, print better. no hype words.</div>
+        <div class="file-name">copy_notes</div>
+      </div>
+      <div class="file">
+        <div class="file-type">video</div>
+        <div class="file-video">▶</div>
+        <div class="file-name">timelapse_print_01</div>
+      </div>
+      <div class="file">
+        <div class="file-type">image</div>
+        <div class="file-image-2"></div>
+        <div class="file-name">closeup_lattice</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="campaign">
+    <div class="campaign-header">
+      <span>campaign: investor email sequence</span>
+    </div>
+    <div class="files-grid">
+      <div class="file">
+        <div class="file-type">email</div>
+        <div class="file-content">subject: a new way of thinking about additive manufacturing — hi {first_name}, we've been heads down for the last...</div>
+        <div class="file-name">email_1_intro</div>
+      </div>
+      <div class="file">
+        <div class="file-type">email</div>
+        <div class="file-content">subject: the loop that changes everything — three weeks ago I wrote about why we're building project carb...</div>
+        <div class="file-name">email_2_thesis</div>
+      </div>
+      <div class="file">
+        <div class="file-type">notes</div>
+        <div class="file-content">subject line variants: 1) "the loop" 2) "what we figured out" 3) "this is going to sound strange"</div>
+        <div class="file-name">subject_lines</div>
+      </div>
+      <div class="file"></div>
+    </div>
+  </div>
+
+  <div class="tool-tray">
+    <div class="tool-tray-label">tool tray</div>
+    <div class="tools">
+      <div class="tool">post builder</div>
+      <div class="tool">templates</div>
+      <div class="tool">brand assets</div>
+      <div class="tool">scheduler</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="chat-bubble" title="open chat">💬</div>
+</body>
+</html>

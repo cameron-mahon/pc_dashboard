@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline</title>
+<link rel="stylesheet" href="shared.css">
+</head>
+<body>
+
+<nav class="sidebar" data-sidebar>
+  <div class="sidebar-brand">project carb</div>
+  <div class="sidebar-nav"></div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-profile" data-sidebar-profile></div>
+</nav>
+
+<div class="main-scroll">
+<div class="main workbench" data-pipeline>
+
+  <div class="surface workbench-surface">
+    <div class="surface-bar">
+      <button class="btn btn-add" data-pipe-add><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>New Task</button>
+    </div>
+    <div class="lanes">
+      <div class="lane" data-drop="todo">
+        <div class="lane-header">To-Do <span class="lane-count" data-count="todo">0</span></div>
+        <div data-lane="todo"></div>
+      </div>
+      <div class="lane" data-drop="wip">
+        <div class="lane-header">In Progress <span class="lane-count" data-count="wip">0</span></div>
+        <div data-lane="wip"></div>
+      </div>
+      <div class="lane" data-drop="done">
+        <div class="lane-header">Completed <span class="lane-count" data-count="done">0</span></div>
+        <div data-lane="done"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" style="margin-top:8px;">
+    <div class="panel-header">
+      <div class="panel-title">Issues</div>
+      <button class="btn btn-add" data-issue-add><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Report</button>
+    </div>
+    <div data-issues></div>
+  </div>
+
+  <!-- surface for files -->
+  <div class="surface workbench-surface" data-room-surface="pipeline" style="margin-top:8px;"></div>
+  <button class="btn btn-add" data-room-file-add="pipeline" style="margin-top:8px;"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add File</button>
+
+</div>
+</div>
+
+<!-- floating chat -->
+<div class="chat-bubble" data-open-chat>
+  <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</div>
+<div class="chat-panel" data-chat-panel>
+  <div class="chat-panel-header">
+    <span class="chat-panel-title">Chat</span>
+    <div class="chat-panel-close" data-close-chat>×</div>
+  </div>
+  <div class="chat-panel-body"></div>
+  <div class="chat-panel-toolbar">
+    <button class="chat-tool" data-chat-emoji title="Emoji">😀</button>
+    <button class="chat-tool" data-chat-gif title="GIF">GIF</button>
+    <label class="chat-tool" data-chat-img title="Image">📷<input type="file" accept="image/*" data-chat-img-input hidden></label>
+  </div>
+  <div class="chat-panel-input"><input data-act="send" placeholder="Say something..."></div>
+</div>
+
+<script type="module" src="pipeline-app.js"></script>
+</body>
+</html>

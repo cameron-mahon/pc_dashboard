@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lobby — sketch</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f4f3ee; color: #2c2c2a; padding: 24px; }
+  .page { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 12px; }
+  .panel { background: #fff; border: 0.5px solid #ddd; border-radius: 8px; padding: 12px; }
+  .label { font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .row { display: flex; gap: 12px; }
+  .row > .panel { flex: 1; }
+  .chat-msg { padding: 6px 0; font-size: 13px; color: #444; border-bottom: 0.5px solid #f0eee8; }
+  .chat-msg:last-child { border-bottom: none; }
+  .chat-msg .who { color: #888; font-weight: 500; margin-right: 6px; }
+  .chat-input { margin-top: 8px; }
+  .chat-input input { width: 100%; padding: 6px 8px; border: 0.5px solid #ddd; border-radius: 4px; font-size: 13px; }
+  .note { padding: 8px 0; font-size: 14px; color: #444; }
+  .task { padding: 8px 0; font-size: 13px; color: #444; border-bottom: 0.5px solid #f0eee8; display: flex; justify-content: space-between; }
+  .task:last-child { border-bottom: none; }
+  .task .area { color: #888; font-size: 11px; }
+  /* gantt */
+  .gantt-row { display: flex; gap: 8px; align-items: center; padding: 4px 0; }
+  .gantt-label { width: 140px; font-size: 12px; color: #444; }
+  .gantt-track { flex: 1; height: 18px; background: #f4f3ee; border-radius: 3px; position: relative; }
+  .gantt-bar { position: absolute; height: 100%; background: #b5d4f4; border-radius: 3px; }
+  .gantt-bar.b2 { background: #c0dd97; }
+  .gantt-bar.b3 { background: #f4c0d1; }
+  .gantt-bar.b4 { background: #fac775; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="panel">
+    <div class="label">group chat</div>
+    <div class="chat-msg"><span class="who">Sam:</span>scanner is back online</div>
+    <div class="chat-msg"><span class="who">Ana:</span>nice. starting object_045 now</div>
+    <div class="chat-msg"><span class="who">you:</span>cool, lmk when ready for review</div>
+    <div class="chat-msg"><span class="who">Mar:</span>posted teaser draft for review</div>
+    <div class="chat-input"><input placeholder="message..."></div>
+  </div>
+
+  <div class="panel">
+    <div class="label">note of the day</div>
+    <div class="note">demo night moved to friday 7pm — please RSVP if you haven't yet</div>
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="label">your tasks</div>
+      <div class="task"><span>scan: object_047</span><span class="area">pipeline</span></div>
+      <div class="task"><span>review IG teaser draft</span><span class="area">marketing</span></div>
+      <div class="task"><span>refactor module-x loader</span><span class="area">backend</span></div>
+    </div>
+    <div class="panel">
+      <div class="label">general tasks (unclaimed)</div>
+      <div class="task"><span>print: lattice_v3</span><span class="area">pipeline</span></div>
+      <div class="task"><span>process: scan_046</span><span class="area">pipeline</span></div>
+      <div class="task"><span>investor email v2</span><span class="area">marketing</span></div>
+      <div class="task"><span>landing page hero rewrite</span><span class="area">frontend</span></div>
+      <div class="task"><span>scan: object_048</span><span class="area">pipeline</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="label">project gantt — peripheral context</div>
+    <div class="gantt-row">
+      <div class="gantt-label">pipeline batch 3</div>
+      <div class="gantt-track"><div class="gantt-bar" style="left: 5%; width: 30%;"></div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">backend v0.4</div>
+      <div class="gantt-track"><div class="gantt-bar b2" style="left: 20%; width: 45%;"></div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">launch teaser campaign</div>
+      <div class="gantt-track"><div class="gantt-bar b3" style="left: 40%; width: 25%;"></div></div>
+    </div>
+    <div class="gantt-row">
+      <div class="gantt-label">website refresh</div>
+      <div class="gantt-track"><div class="gantt-bar b4" style="left: 55%; width: 35%;"></div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
