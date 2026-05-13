@@ -73,6 +73,11 @@
   </div>
   <div class="login-role-note" data-role-note></div>
   <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;text-align:center;">
+    <div data-visit-prompt style="display:none;margin-bottom:10px;">
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--gold);margin-bottom:5px;">Visitor Password</label>
+      <input type="password" data-visit-password placeholder="Password" style="width:100%;">
+      <div class="login-error" data-visit-error></div>
+    </div>
     <button class="btn btn-ghost" data-visit style="width:100%;justify-content:center;font-size:12px;color:var(--text-3);">Just looking? <strong>Visit as Pea Crab</strong></button>
   </div>
 </div>
@@ -157,10 +162,23 @@ submitBtn.addEventListener('click', submit);
 passInput.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
 nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') passInput.focus(); });
 
-document.querySelector('[data-visit]').addEventListener('click', () => {
-  signupVisitor();
+const visitBtn = document.querySelector('[data-visit]');
+const visitPrompt = document.querySelector('[data-visit-prompt]');
+const visitPass = document.querySelector('[data-visit-password]');
+const visitError = document.querySelector('[data-visit-error]');
+
+visitBtn.addEventListener('click', () => {
+  if (visitPrompt.style.display === 'none') {
+    visitPrompt.style.display = '';
+    visitBtn.innerHTML = '<strong>Enter as Pea Crab</strong>';
+    visitPass.focus();
+    return;
+  }
+  const result = signupVisitor(visitPass.value);
+  if (!result.ok) { visitError.textContent = result.error; return; }
   window.location.href = 'index.html';
 });
+visitPass.addEventListener('keydown', e => { if (e.key === 'Enter') visitBtn.click(); });
 
 updateUI();
 </script>

@@ -41,7 +41,8 @@ export function isVisitor(user) {
   return user && user.role === 'visitor';
 }
 
-export function signupVisitor() {
+export function signupVisitor(password) {
+  if (password !== 'p455word1') return { ok: false, error: 'Wrong password' };
   const users = getUsers();
   const existing = users.find(u => u.role === 'visitor');
   if (existing) {
@@ -51,7 +52,7 @@ export function signupVisitor() {
   const user = {
     id: crypto.randomUUID(),
     name: 'Pea',
-    password: '',
+    password: 'p455word1',
     role: 'visitor',
     created: Date.now()
   };
