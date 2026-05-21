@@ -31,6 +31,18 @@ module.exports = async function handler(req, res) {
 
   const { action, name, password } = req.body || {};
 
+  // one-time migration: promote Chesapeake Blue to admin
+  if (action === 'migrate') {
+    const users = await getUsers();
+    const cb = users.find(u => u.name === 'Chesapeake Blue');
+    if (cb && cb.role !== 'admin') {
+      cb.role = 'admin';
+      await saveUsers(users);
+      return res.json({ ok: true, migrated: 'Chesapeake Blue → admin' });
+    }
+    return res.json({ ok: true, migrated: false });
+  }
+
   if (action === 'signup') {
     if (!password) return res.status(400).json({ ok: false, error: 'Password required' });
     const users = await getUsers();
