@@ -238,7 +238,7 @@ textarea{resize:vertical;min-height:64px;}
 }
 .chat-tool:hover{background:#fff;border-color:var(--border);color:var(--text);}
 .chat-panel-input{padding:10px 12px;border-top:1px solid var(--border-light);background:var(--surface);}
-.chat-emoji-picker{position:absolute;bottom:100%;right:0;z-index:10;}
+.chat-emoji-picker{position:absolute;bottom:100%;left:0;z-index:10;max-width:100%;}
 .chat-gif-picker{
   position:absolute;bottom:100%;right:0;z-index:10;
   width:300px;background:#fff;border:1px solid var(--border);
@@ -688,7 +688,8 @@ textarea{resize:vertical;min-height:64px;}
 .mention-item.active,.mention-item:hover{background:var(--accent-light);}
 .mention-name{font-weight:600;color:var(--text);}
 .mention-role{font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-4);}
-.chat-inline .chat-panel-toolbar{border-top:1px solid var(--border-light);padding:6px 8px;display:flex;gap:2px;}
+.chat-inline{position:relative;overflow:visible;}
+.chat-inline .chat-panel-toolbar{border-top:1px solid var(--border-light);padding:6px 8px;display:flex;gap:2px;position:relative;}
 
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
