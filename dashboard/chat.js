@@ -216,6 +216,16 @@ function bindToolbar(panel) {
     const results = gifPanel.querySelector('.chat-gif-results');
     searchInput.focus();
 
+    function closeGif() {
+      if (gifPanel) { gifPanel.remove(); gifPanel = null; }
+      document.removeEventListener('click', outsideClick);
+    }
+
+    function outsideClick(ev) {
+      if (!gifPanel) return;
+      if (!gifPanel.contains(ev.target) && ev.target !== gifBtn) closeGif();
+    }
+
     async function searchGifs(q) {
       const endpoint = q
         ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=20&rating=g`
@@ -231,7 +241,7 @@ function bindToolbar(panel) {
         results.querySelectorAll('img').forEach(img => {
           img.addEventListener('click', () => {
             push({ who: whoAmI(), img: img.dataset.full });
-            gifPanel.remove(); gifPanel = null;
+            closeGif();
           });
         });
       } catch { results.innerHTML = '<div style="font-size:11px;color:var(--text-4);padding:8px;">Could not load GIFs</div>'; }
@@ -244,14 +254,7 @@ function bindToolbar(panel) {
       timer = setTimeout(() => searchGifs(searchInput.value.trim()), 300);
     });
 
-    const close = (ev) => {
-      if (!gifPanel) return;
-      if (!gifPanel.contains(ev.target) && ev.target !== gifBtn) {
-        gifPanel.remove(); gifPanel = null;
-        document.removeEventListener('click', close);
-      }
-    };
-    setTimeout(() => document.addEventListener('click', close), 0);
+    setTimeout(() => document.addEventListener('click', outsideClick), 0);
   });
 }
 
