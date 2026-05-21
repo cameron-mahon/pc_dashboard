@@ -48,7 +48,14 @@ function msgHTML(m, prev) {
   const content = m.img
     ? `<img src="${esc(m.img)}" alt="">`
     : renderText(m.text);
-  return `<div class="chat-msg${isMe ? ' you' : ''}${grouped ? ' grouped' : ''}">
+  if (isMe) {
+    return `<div class="chat-msg you${grouped ? ' grouped' : ''}">
+      <div class="msg-body">
+        <div class="msg-bubble">${content}</div>
+      </div>
+    </div>`;
+  }
+  return `<div class="chat-msg${grouped ? ' grouped' : ''}">
     <div class="msg-avatar">${grouped ? '' : avatarHTML(m.who)}</div>
     <div class="msg-body">
       ${grouped ? '' : `<div class="msg-name">${esc(m.who)}</div>`}
