@@ -34,13 +34,11 @@ function renderText(text) {
     const names = cachedUsers.map(u => u.name).sort((a, b) => b.length - a.length);
     for (const name of names) {
       const escaped = esc(name);
-      result = result.split('@' + escaped).join(`<span class="chat-mention">@${escaped}</span>`);
+      const re = new RegExp('@' + escaped.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?=\\s|$)', 'g');
+      result = result.replace(re, `<span class="chat-mention">@${escaped}</span>`);
     }
-    return result;
   }
-  return result.replace(/@(\w[\w\s]*\w|\w)/g, (match) => {
-    return `<span class="chat-mention">${match}</span>`;
-  });
+  return result;
 }
 
 function avatarHTML(name) {
