@@ -113,11 +113,25 @@ function updateUI() {
   } else {
     nameField.style.display = 'none';
     assignedField.style.display = '';
-    assignedName.textContent = '(assigned on signup)';
+    assignedName.textContent = 'Loading...';
     submitBtn.textContent = 'Create Account';
-    subEl.textContent = 'Create your account';
+    subEl.textContent = 'You have been assigned';
     toggleEl.innerHTML = "Already have an account? <span>Sign in</span>";
     roleNote.textContent = '';
+    fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'preview' }),
+    }).then(r => r.json()).then(data => {
+      if (data.ok && mode === 'signup') {
+        assignedName.textContent = data.name;
+        roleNote.textContent = data.role === 'superadmin'
+          ? 'First account becomes Superadmin'
+          : 'You will join as a Member';
+      }
+    }).catch(() => {
+      assignedName.textContent = '(name assigned on signup)';
+    });
   }
   errorEl.textContent = '';
 }

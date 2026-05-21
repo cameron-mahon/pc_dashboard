@@ -98,6 +98,35 @@ module.exports = async function handler(req, res) {
     return res.json({ ok: true, user: { id: visitor.id, name: visitor.name, role: visitor.role } });
   }
 
+  if (action === 'preview') {
+    const users = await getUsers();
+    const CRABS = [
+      'Yeti','Maryland Blue','Dungeness','Florida Stone','Peekytoe',
+      'Jonah','Japanese Spider','Snow','Brown','Chesapeake Blue',
+      'Mud','Mangrove','Flower','Ghost','Fiddler','Red Rock',
+      'Southern Kelp','Sheep','Box','Calico','Arrow','Green',
+      'Velvet Belly','Halloween Moon','Soldier','Mitten','Shore',
+      'Marble','Yellowline Arrow','Spider Decorator','Alaskan King',
+      'Red King','Blue King','Golden King','Coconut','Hermit',
+      'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
+      'Spiny King','Pom Pom','Horseshoe','Triops'
+    ];
+    let crabName;
+    let role;
+    if (users.length === 0) {
+      crabName = CRABS[0];
+      role = 'superadmin';
+    } else {
+      const taken = new Set(users.map(u => u.name));
+      const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
+      crabName = available.length
+        ? available[Math.floor(Math.random() * available.length)]
+        : 'Crab #' + (users.length + 1);
+      role = 'member';
+    }
+    return res.json({ ok: true, name: crabName, role });
+  }
+
   if (action === 'get-user') {
     const { userId } = req.body;
     if (!userId) return res.json({ ok: false });
