@@ -4,7 +4,7 @@ import { getCrabPhoto } from './userbar.js';
 import 'emoji-picker-element';
 
 const KEY = 'chat';
-const TENOR_KEY = 'AIzaSyAyimkuYQYF_FXVALexPuGQctUWRURdCHQ';
+const GIPHY_KEY = 'GlVGYHkr3WSBnllca54iNt0yFbjz7L65';
 
 function whoAmI() {
   const u = currentUser();
@@ -222,14 +222,15 @@ function bindToolbar(panel) {
 
     async function searchGifs(q) {
       const endpoint = q
-        ? `https://tenor.googleapis.com/v2/search?q=${encodeURIComponent(q)}&key=${TENOR_KEY}&limit=20&media_filter=tinygif`
-        : `https://tenor.googleapis.com/v2/featured?key=${TENOR_KEY}&limit=20&media_filter=tinygif`;
+        ? `https://api.giphy.com/v1/gifs/search?api_key=${GIPHY_KEY}&q=${encodeURIComponent(q)}&limit=20&rating=g`
+        : `https://api.giphy.com/v1/gifs/trending?api_key=${GIPHY_KEY}&limit=20&rating=g`;
       try {
         const res = await fetch(endpoint);
         const data = await res.json();
-        results.innerHTML = (data.results || []).map(g => {
-          const url = g.media_formats.tinygif.url;
-          return `<img src="${url}" data-full="${g.media_formats.gif ? g.media_formats.gif.url : url}">`;
+        results.innerHTML = (data.data || []).map(g => {
+          const preview = g.images.fixed_width_small.url;
+          const full = g.images.original.url;
+          return `<img src="${preview}" data-full="${full}">`;
         }).join('');
         results.querySelectorAll('img').forEach(img => {
           img.addEventListener('click', () => {
