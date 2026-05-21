@@ -233,9 +233,9 @@ textarea{resize:vertical;min-height:64px;}
 }
 .chat-send svg{stroke:currentColor;fill:none;stroke-width:2px;}
 .chat-send:hover{background:var(--accent-hover);}
-.chat-emoji-picker{position:absolute;bottom:100%;left:0;z-index:10;max-width:100%;}
+.chat-emoji-picker{position:absolute;top:100%;left:0;z-index:10;max-width:100%;}
 .chat-gif-picker{
-  position:absolute;bottom:100%;left:0;z-index:10;
+  position:absolute;top:100%;left:0;z-index:10;
   width:300px;max-width:100%;background:#fff;border:1px solid var(--border);
   border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);
   padding:8px;
