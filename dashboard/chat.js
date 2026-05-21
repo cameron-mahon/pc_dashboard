@@ -273,6 +273,7 @@ export function initInlineChat() {
     list.scrollTop = list.scrollHeight;
   }
   render();
+  fetchUsers().then(() => render());
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
   if (isVisitor(currentUser())) {
@@ -352,6 +353,7 @@ export function initFloatingChat() {
     body.scrollTop = body.scrollHeight;
   }
   render();
+  fetchUsers().then(() => render());
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
   if (isVisitor(currentUser())) {
