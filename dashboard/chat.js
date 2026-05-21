@@ -29,7 +29,16 @@ async function fetchUsers() {
 }
 
 function renderText(text) {
-  return esc(text).replace(/@(\w[\w\s]*?\w|\w)/g, (match) => {
+  let result = esc(text);
+  if (cachedUsers) {
+    const names = cachedUsers.map(u => u.name).sort((a, b) => b.length - a.length);
+    for (const name of names) {
+      const escaped = esc(name);
+      result = result.split('@' + escaped).join(`<span class="chat-mention">@${escaped}</span>`);
+    }
+    return result;
+  }
+  return result.replace(/@(\w[\w\s]*\w|\w)/g, (match) => {
     return `<span class="chat-mention">${match}</span>`;
   });
 }
