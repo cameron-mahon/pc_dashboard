@@ -20,7 +20,7 @@ async function fetchUsers() {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'list-users' }),
+      body: JSON.stringify({ action: 'list-users', userId: currentUser()?.id }),
     });
     const data = await res.json();
     if (data.ok) cachedUsers = data.users;
@@ -129,7 +129,7 @@ function bindInput(input) {
       const item = document.createElement('div');
       item.className = 'mention-item' + (i === 0 ? ' active' : '');
       item.dataset.name = u.name;
-      item.innerHTML = `<span class="mention-name">${esc(u.name)}</span><span class="mention-role">${esc(u.role)}</span>`;
+      item.innerHTML = `<span class="mention-name">${esc(u.name)}</span>${u.role ? `<span class="mention-role">${esc(u.role)}</span>` : ''}`;
       item.addEventListener('mousedown', e => {
         e.preventDefault();
         const v = input.value;
