@@ -12,23 +12,112 @@ function whoAmI() {
 
 function load() { return get(KEY, []); }
 
+let cachedUsers = null;
+async function fetchUsers() {
+  if (cachedUsers) return cachedUsers;
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list-users' }),
+    });
+    const data = await res.json();
+    if (data.ok) cachedUsers = data.users;
+  } catch {}
+  return cachedUsers || [];
+}
+
+function renderText(text) {
+  return esc(text).replace(/@(\w[\w\s]*?\w|\w)/g, (match) => {
+    return `<span class="chat-mention">${match}</span>`;
+  });
+}
+
 function msgHTML(m) {
   const me = whoAmI();
   const cls = m.who === me ? 'chat-msg you' : 'chat-msg';
   if (m.img) {
     return `<div class="${cls}"><span class="who">${esc(m.who)}</span><img src="${esc(m.img)}" alt=""></div>`;
   }
-  return `<div class="${cls}"><span class="who">${esc(m.who)}</span>${esc(m.text)}</div>`;
+  return `<div class="${cls}"><span class="who">${esc(m.who)}</span>${renderText(m.text)}</div>`;
 }
 
 function bindInput(input) {
   if (!input) return;
+  let mentionDropdown = null;
+
+  function closeMention() {
+    if (mentionDropdown) { mentionDropdown.remove(); mentionDropdown = null; }
+  }
+
   input.addEventListener('keydown', e => {
+    if (mentionDropdown) {
+      const items = mentionDropdown.querySelectorAll('.mention-item');
+      const active = mentionDropdown.querySelector('.mention-item.active');
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        const arr = [...items];
+        let idx = arr.indexOf(active);
+        if (e.key === 'ArrowDown') idx = (idx + 1) % arr.length;
+        else idx = (idx - 1 + arr.length) % arr.length;
+        arr.forEach(el => el.classList.remove('active'));
+        arr[idx].classList.add('active');
+        return;
+      }
+      if ((e.key === 'Enter' || e.key === 'Tab') && active) {
+        e.preventDefault();
+        const name = active.dataset.name;
+        const val = input.value;
+        const atIdx = val.lastIndexOf('@');
+        input.value = val.slice(0, atIdx) + '@' + name + ' ';
+        closeMention();
+        return;
+      }
+      if (e.key === 'Escape') { closeMention(); return; }
+    }
     if (e.key === 'Enter' && input.value.trim()) {
       push({ who: whoAmI(), text: input.value.trim() });
       input.value = '';
+      closeMention();
     }
   });
+
+  input.addEventListener('input', async () => {
+    const val = input.value;
+    const atIdx = val.lastIndexOf('@');
+    if (atIdx === -1 || (atIdx > 0 && val[atIdx - 1] !== ' ')) {
+      closeMention();
+      return;
+    }
+    const query = val.slice(atIdx + 1).toLowerCase();
+    if (query.includes(' ') && query.length > 20) { closeMention(); return; }
+    const users = await fetchUsers();
+    const matches = users.filter(u => u.name.toLowerCase().startsWith(query));
+    if (!matches.length) { closeMention(); return; }
+
+    closeMention();
+    mentionDropdown = document.createElement('div');
+    mentionDropdown.className = 'mention-dropdown';
+    matches.slice(0, 6).forEach((u, i) => {
+      const item = document.createElement('div');
+      item.className = 'mention-item' + (i === 0 ? ' active' : '');
+      item.dataset.name = u.name;
+      item.innerHTML = `<span class="mention-name">${esc(u.name)}</span><span class="mention-role">${esc(u.role)}</span>`;
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        const v = input.value;
+        const ai = v.lastIndexOf('@');
+        input.value = v.slice(0, ai) + '@' + u.name + ' ';
+        closeMention();
+        input.focus();
+      });
+      mentionDropdown.appendChild(item);
+    });
+    input.parentElement.style.position = 'relative';
+    input.parentElement.appendChild(mentionDropdown);
+  });
+
+  input.addEventListener('blur', () => setTimeout(closeMention, 150));
 }
 
 function push(msg) {
@@ -146,9 +235,13 @@ export function initInlineChat() {
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
   if (isVisitor(currentUser())) {
     const row = document.querySelector('.chat-inline .chat-input-row');
+    const tb = document.querySelector('.chat-inline .chat-panel-toolbar');
     if (row) row.style.display = 'none';
+    if (tb) tb.style.display = 'none';
   } else {
     bindInput(document.querySelector('.chat-inline input[data-act="send"]'));
+    const inlinePanel = document.querySelector('.chat-inline');
+    if (inlinePanel) bindToolbar(inlinePanel);
   }
 }
 

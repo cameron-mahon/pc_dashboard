@@ -127,6 +127,11 @@ module.exports = async function handler(req, res) {
     return res.json({ ok: true, name: crabName, role });
   }
 
+  if (action === 'list-users') {
+    const users = await getUsers();
+    return res.json({ ok: true, users: users.map(u => ({ name: u.name, role: u.role })) });
+  }
+
   if (action === 'get-user') {
     const { userId } = req.body;
     if (!userId) return res.json({ ok: false });

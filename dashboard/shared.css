@@ -670,5 +670,14 @@ textarea{resize:vertical;min-height:64px;}
 .sidebar-profile .user-bar-logout svg{width:26px;height:26px;stroke:currentColor;fill:none;stroke-width:1.8;}
 
 
+/* @ mentions */
+.chat-mention{color:var(--accent);font-weight:600;background:var(--accent-light);border-radius:3px;padding:0 3px;}
+.mention-dropdown{position:absolute;bottom:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--radius-sm);box-shadow:0 4px 12px rgba(0,0,0,0.12);max-height:180px;overflow-y:auto;z-index:50;}
+.mention-item{padding:7px 12px;font-size:12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background 80ms;}
+.mention-item.active,.mention-item:hover{background:var(--accent-light);}
+.mention-name{font-weight:600;color:var(--text);}
+.mention-role{font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-4);}
+.chat-inline .chat-panel-toolbar{border-top:1px solid var(--border-light);padding:6px 8px;display:flex;gap:2px;}
+
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
