@@ -1,5 +1,6 @@
 import { get, put, esc } from './store.js';
 import { currentUser, isVisitor } from './auth.js';
+import { getCrabPhoto } from './userbar.js';
 import 'emoji-picker-element';
 
 const KEY = 'chat';
@@ -33,13 +34,32 @@ function renderText(text) {
   });
 }
 
-function msgHTML(m) {
+function avatarHTML(name) {
+  const src = getCrabPhoto(name);
+  if (src) return `<img src="${esc(src)}" alt="${esc(name)}">`;
+  const ini = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  return `<span class="msg-avatar-fallback">${ini}</span>`;
+}
+
+function msgHTML(m, prev) {
   const me = whoAmI();
-  const cls = m.who === me ? 'chat-msg you' : 'chat-msg';
-  if (m.img) {
-    return `<div class="${cls}"><span class="who">${esc(m.who)}</span><img src="${esc(m.img)}" alt=""></div>`;
-  }
-  return `<div class="${cls}"><span class="who">${esc(m.who)}</span>${renderText(m.text)}</div>`;
+  const isMe = m.who === me;
+  const grouped = prev && prev.who === m.who;
+  const content = m.img
+    ? `<img src="${esc(m.img)}" alt="">`
+    : renderText(m.text);
+  return `<div class="chat-msg${isMe ? ' you' : ''}${grouped ? ' grouped' : ''}">
+    <div class="msg-avatar">${grouped ? '' : avatarHTML(m.who)}</div>
+    <div class="msg-body">
+      ${grouped ? '' : `<div class="msg-name">${esc(m.who)}</div>`}
+      <div class="msg-bubble">${content}</div>
+    </div>
+  </div>`;
+}
+
+function renderMsgs(msgs) {
+  if (!msgs.length) return '<div class="chat-empty">No messages yet</div>';
+  return msgs.map((m, i) => msgHTML(m, i > 0 ? msgs[i - 1] : null)).join('');
 }
 
 function bindInput(input) {
@@ -224,10 +244,7 @@ export function initInlineChat() {
   const list = document.querySelector('.chat-inline .chat-list');
   if (!list) return;
   function render() {
-    const msgs = load();
-    list.innerHTML = msgs.length
-      ? msgs.map(msgHTML).join('')
-      : '<div class="chat-empty">No messages yet</div>';
+    list.innerHTML = renderMsgs(load());
     list.scrollTop = list.scrollHeight;
   }
   render();
@@ -308,10 +325,7 @@ export function initFloatingChat() {
   // messages
   const body = panel.querySelector('.chat-panel-body');
   function render() {
-    const msgs = load();
-    body.innerHTML = msgs.length
-      ? msgs.map(msgHTML).join('')
-      : '<div class="chat-empty">No messages yet</div>';
+    body.innerHTML = renderMsgs(load());
     body.scrollTop = body.scrollHeight;
   }
   render();
