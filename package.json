@@ -13,6 +13,7 @@
   "type": "commonjs",
   "dependencies": {
     "@google/model-viewer": "^4.2.0",
+    "@vercel/blob": "^2.4.0",
     "emoji-picker-element": "^1.29.1",
     "vite": "^8.0.12"
   }

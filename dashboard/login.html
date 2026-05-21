@@ -83,25 +83,13 @@
 </div>
 
 <script type="module">
-import { signup, login, signupVisitor, currentUser, getUsers, assignCrabName } from './auth.js';
-import { get, put } from './store.js';
-
-// migrate old "X Crab" names
-if (!get('crab_migrated', false)) {
-  const users = getUsers();
-  if (users.length) {
-    users.forEach(u => { u.name = u.name.replace(/ Crab$/, ''); });
-    put('users', users);
-  }
-  put('crab_migrated', true);
-}
+import { signup, login, signupVisitor, currentUser } from './auth.js';
 
 if (currentUser()) {
   window.location.href = 'index.html';
 }
 
 let mode = 'login';
-let pendingCrab = null;
 
 const nameField = document.querySelector('[data-name-field]');
 const nameInput = document.querySelector('[data-name]');
@@ -122,18 +110,14 @@ function updateUI() {
     subEl.textContent = 'Sign in to your workspace';
     toggleEl.innerHTML = "Don't have an account? <span>Sign up</span>";
     roleNote.textContent = '';
-    pendingCrab = null;
   } else {
-    pendingCrab = assignCrabName();
     nameField.style.display = 'none';
     assignedField.style.display = '';
-    assignedName.textContent = pendingCrab;
+    assignedName.textContent = '(assigned on signup)';
     submitBtn.textContent = 'Create Account';
-    subEl.textContent = 'You have been assigned';
+    subEl.textContent = 'Create your account';
     toggleEl.innerHTML = "Already have an account? <span>Sign in</span>";
-    roleNote.textContent = getUsers().length === 0
-      ? 'First account becomes Superadmin'
-      : 'You will join as a Member';
+    roleNote.textContent = '';
   }
   errorEl.textContent = '';
 }
@@ -143,16 +127,16 @@ toggleEl.addEventListener('click', () => {
   updateUI();
 });
 
-function submit() {
+async function submit() {
   const pass = passInput.value;
   if (mode === 'login') {
     const name = nameInput.value.trim();
     if (!name || !pass) { errorEl.textContent = 'Name and password required'; return; }
-    const result = login(name, pass);
+    const result = await login(name, pass);
     if (!result.ok) { errorEl.textContent = result.error; return; }
   } else {
     if (!pass) { errorEl.textContent = 'Set a password'; return; }
-    const result = signup(pass);
+    const result = await signup(pass);
     if (!result.ok) { errorEl.textContent = result.error; return; }
   }
   window.location.href = 'index.html';
@@ -167,14 +151,14 @@ const visitPrompt = document.querySelector('[data-visit-prompt]');
 const visitPass = document.querySelector('[data-visit-password]');
 const visitError = document.querySelector('[data-visit-error]');
 
-visitBtn.addEventListener('click', () => {
+visitBtn.addEventListener('click', async () => {
   if (visitPrompt.style.display === 'none') {
     visitPrompt.style.display = '';
     visitBtn.innerHTML = '<strong>Enter as Pea Crab</strong>';
     visitPass.focus();
     return;
   }
-  const result = signupVisitor(visitPass.value);
+  const result = await signupVisitor(visitPass.value);
   if (!result.ok) { visitError.textContent = result.error; return; }
   window.location.href = 'index.html';
 });
