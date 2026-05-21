@@ -49,7 +49,11 @@ if (requireAuth()) {
       }
       floater.style.transform = `translate(${curX - half}px, ${curY - half}px) scale(0.27)`;
 
-      if (mouseActive && dist < 10 && mv) {
+      const creatureRadius = half * 0.27;
+      const cursorOnCreature = mouseActive
+        && Math.abs(targetX - curX) < creatureRadius
+        && Math.abs(targetY - curY) < creatureRadius;
+      if (cursorOnCreature && dist < 10 && mv) {
         if (!freakout) freakout = true;
         const t = (Math.random() - 0.5) * 2160;
         const p = (Math.random() - 0.5) * 1440;
