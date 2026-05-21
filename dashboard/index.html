@@ -18,13 +18,24 @@
 <div class="main-scroll">
 <div class="lobby-model-bg">
   <model-viewer
-    src="LuHar.glb"
-    camera-controls
-    auto-rotate
-    auto-rotate-delay="0"
-    rotation-per-second="12deg"
+    src="desert-env.hdr"
+    skybox-image="desert-env.hdr"
     interaction-prompt="none"
-    style="width:100%;height:100%;"
+    style="width:100%;height:100%;pointer-events:none;"
+  ></model-viewer>
+</div>
+<div class="lobby-model-float" id="lobby-float">
+  <model-viewer
+    id="lobby-model"
+    src="LuHar.glb"
+    interaction-prompt="none"
+    environment-image="desert-env.hdr"
+    exposure="1.2"
+    shadow-intensity="1.5"
+    shadow-softness="0.8"
+    tone-mapping="commerce"
+    camera-orbit="0deg 75deg 150%"
+    style="width:100%;height:100%;pointer-events:none;background:transparent;"
   ></model-viewer>
 </div>
 <div class="main" data-lobby>

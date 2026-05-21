@@ -4,7 +4,8 @@
   "description": "A project management dashboard for Project Carb. Built so teammembers have the least amount of friction possible to:",
   "main": "index.js",
   "scripts": {
-    "dev": "vite dashboard --port 3000 --open"
+    "dev": "vite dashboard --port 3000 --open",
+    "build": "vite build"
   },
   "keywords": [],
   "author": "",
