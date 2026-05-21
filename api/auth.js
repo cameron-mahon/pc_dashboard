@@ -1,13 +1,16 @@
-const { put, list } = require('@vercel/blob');
+const { put, list, get: getBlob } = require('@vercel/blob');
 
 const BLOB_KEY = 'pc-dashboard-users.json';
 
 async function getUsers() {
   try {
-    const { blobs } = await list({ prefix: BLOB_KEY });
-    if (!blobs.length) return [];
-    const res = await fetch(blobs[0].url);
-    return await res.json();
+    const result = await getBlob(BLOB_KEY, { access: 'private' });
+    if (!result) return [];
+    const chunks = [];
+    for await (const chunk of result.stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return JSON.parse(Buffer.concat(chunks).toString('utf-8'));
   } catch {
     return [];
   }
@@ -15,8 +18,9 @@ async function getUsers() {
 
 async function saveUsers(users) {
   await put(BLOB_KEY, JSON.stringify(users), {
-    access: 'public',
+    access: 'private',
     addRandomSuffix: false,
+    allowOverwrite: true,
   });
 }
 
@@ -41,12 +45,19 @@ module.exports = async function handler(req, res) {
       'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
       'Spiny King','Pom Pom','Horseshoe','Triops'
     ];
-    const taken = new Set(users.map(u => u.name));
-    const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
-    const crabName = available.length
-      ? available[Math.floor(Math.random() * available.length)]
-      : 'Crab #' + (users.length + 1);
-    const role = users.length === 0 ? 'superadmin' : 'member';
+    let crabName;
+    let role;
+    if (users.length === 0) {
+      crabName = CRABS[0];
+      role = 'superadmin';
+    } else {
+      const taken = new Set(users.map(u => u.name));
+      const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
+      crabName = available.length
+        ? available[Math.floor(Math.random() * available.length)]
+        : 'Crab #' + (users.length + 1);
+      role = 'member';
+    }
     const user = {
       id: crypto.randomUUID(),
       name: crabName,
