@@ -128,8 +128,26 @@ module.exports = async function handler(req, res) {
   }
 
   if (action === 'list-users') {
+    const { userId } = req.body;
     const users = await getUsers();
-    return res.json({ ok: true, users: users.map(u => ({ name: u.name, role: u.role })) });
+    const caller = userId ? users.find(u => u.id === userId) : null;
+    const isAdmin = caller && (caller.role === 'superadmin' || caller.role === 'admin');
+    return res.json({ ok: true, users: users.map(u => ({ name: u.name, ...(isAdmin ? { role: u.role } : {}) })) });
+  }
+
+  if (action === 'set-role') {
+    const { targetName, newRole, userId } = req.body;
+    if (!targetName || !newRole || !userId) return res.json({ ok: false, error: 'Missing fields' });
+    const users = await getUsers();
+    const caller = users.find(u => u.id === userId);
+    if (!caller || (caller.role !== 'superadmin' && caller.role !== 'admin')) {
+      return res.json({ ok: false, error: 'Not authorized' });
+    }
+    const target = users.find(u => u.name === targetName);
+    if (!target) return res.json({ ok: false, error: 'User not found' });
+    target.role = newRole;
+    await saveUsers(users);
+    return res.json({ ok: true });
   }
 
   if (action === 'get-user') {
