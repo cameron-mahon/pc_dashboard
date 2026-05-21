@@ -558,6 +558,13 @@ textarea{resize:vertical;min-height:64px;}
     inset 0 1px 2px rgba(255,200,200,0.12),
     inset 0 -4px 8px rgba(0,0,0,0.4);
 }
+.chat-badge{
+  position:absolute;top:-4px;right:-4px;
+  min-width:18px;height:18px;border-radius:9px;background:#e33;color:#fff;
+  font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;
+  padding:0 4px;box-shadow:0 2px 4px rgba(0,0,0,0.3);z-index:1;
+}
+.chat-bubble.has-unread .chat-badge{display:flex;}
 .chat-bubble svg{
   width:22px;height:22px;
   stroke:#d4a94e;fill:none;stroke-width:2;

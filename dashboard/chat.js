@@ -159,6 +159,47 @@ function push(msg) {
   msgs.push(msg);
   put(KEY, msgs);
   window.dispatchEvent(new CustomEvent('pc-chat'));
+  if (msg.text) notifyMentions(msg);
+}
+
+function notifyMentions(msg) {
+  if (!msg.text) return;
+  const me = whoAmI();
+  if (msg.who === me) return;
+  if (!msg.text.includes('@' + me)) return;
+  updateBadge();
+  if (Notification.permission === 'granted') {
+    new Notification(`${msg.who} mentioned you`, { body: msg.text, tag: 'pc-mention' });
+  } else if (Notification.permission !== 'denied') {
+    Notification.requestPermission();
+  }
+}
+
+function updateBadge() {
+  const me = whoAmI();
+  if (!me || me === 'anon') return;
+  const lastSeen = get('chat_last_seen', 0);
+  const msgs = load();
+  const unread = msgs.filter((m, i) => i >= lastSeen && m.text && m.text.includes('@' + me) && m.who !== me);
+  const bubble = document.querySelector('.chat-bubble');
+  if (!bubble) return;
+  let badge = bubble.querySelector('.chat-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'chat-badge';
+    bubble.appendChild(badge);
+  }
+  if (unread.length > 0) {
+    badge.textContent = unread.length;
+    bubble.classList.add('has-unread');
+  } else {
+    bubble.classList.remove('has-unread');
+  }
+}
+
+function markSeen() {
+  put('chat_last_seen', load().length);
+  updateBadge();
 }
 
 function bindToolbar(panel) {
@@ -300,6 +341,7 @@ export function initFloatingChat() {
     panel.style.display = v ? 'flex' : 'none';
     if (bubble) bubble.style.display = v ? 'none' : 'flex';
     put('chat_open', v);
+    if (v) markSeen();
   }
 
   // position
@@ -353,9 +395,9 @@ export function initFloatingChat() {
     body.scrollTop = body.scrollHeight;
   }
   render();
-  fetchUsers().then(() => render());
-  window.addEventListener('pc-chat', render);
-  window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
+  fetchUsers().then(() => { render(); updateBadge(); });
+  window.addEventListener('pc-chat', () => { render(); updateBadge(); });
+  window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) { render(); updateBadge(); } });
   if (isVisitor(currentUser())) {
     const compose = panel.querySelector('.chat-compose');
     if (compose) compose.style.display = 'none';
