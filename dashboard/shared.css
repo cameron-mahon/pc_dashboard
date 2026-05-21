@@ -205,8 +205,44 @@ textarea{resize:vertical;min-height:64px;}
 .chat-msg.you .msg-bubble .chat-mention{color:#fff;background:rgba(255,255,255,0.25);}
 .chat-msg.grouped .msg-bubble{border-radius:16px;}
 .msg-bubble img{max-width:200px;max-height:180px;border-radius:8px;display:block;}
-.chat-input-row{margin-top:8px;}
 .chat-empty{font-size:12px;color:var(--text-4);padding:14px 0;text-align:center;}
+
+/* ---- chat compose bar ---- */
+.chat-compose{border-top:1px solid var(--border-light);background:var(--surface);padding:8px 10px;}
+.chat-compose-tools{display:flex;gap:2px;margin-bottom:6px;position:relative;}
+.chat-tool{
+  width:30px;height:30px;display:flex;align-items:center;justify-content:center;
+  background:none;border:none;border-radius:6px;cursor:pointer;
+  color:var(--text-4);transition:all 100ms;padding:0;
+}
+.chat-tool svg{stroke:currentColor;fill:none;stroke-width:1.6px;}
+.chat-tool:hover{background:var(--border-light);color:var(--text-2);}
+.chat-compose-input{display:flex;gap:6px;align-items:center;}
+.chat-compose-input input{
+  flex:1;border:1px solid var(--border);border-radius:20px;
+  padding:7px 14px;font-size:13px;background:#fff;
+  transition:border-color 120ms;
+}
+.chat-compose-input input:focus{border-color:var(--accent);outline:none;box-shadow:none;}
+.chat-send{
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:var(--accent);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:background 120ms;padding:0;
+}
+.chat-send svg{stroke:currentColor;fill:none;stroke-width:2px;}
+.chat-send:hover{background:var(--accent-hover);}
+.chat-emoji-picker{position:absolute;bottom:100%;left:0;z-index:10;max-width:100%;}
+.chat-gif-picker{
+  position:absolute;bottom:100%;left:0;z-index:10;
+  width:300px;max-width:100%;background:#fff;border:1px solid var(--border);
+  border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);
+  padding:8px;
+}
+.chat-gif-picker input{margin-bottom:6px;}
+.chat-gif-results{display:flex;flex-wrap:wrap;gap:4px;max-height:240px;overflow-y:auto;}
+.chat-gif-results img{width:90px;height:68px;object-fit:cover;border-radius:4px;cursor:pointer;transition:transform 100ms;}
+.chat-gif-results img:hover{transform:scale(1.05);}
 
 /* ---- floating chat panel ---- */
 .chat-panel{
@@ -228,27 +264,6 @@ textarea{resize:vertical;min-height:64px;}
 }
 .chat-panel-close:hover{background:var(--border-light);color:var(--text);}
 .chat-panel-body{flex:1;padding:12px 14px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
-.chat-panel-toolbar{
-  display:flex;gap:2px;padding:4px 12px;border-top:1px solid var(--border-light);
-  background:var(--surface);
-}
-.chat-tool{
-  padding:3px 8px;font-size:12px;background:none;border:1px solid transparent;
-  border-radius:4px;cursor:pointer;color:var(--text-3);transition:all 100ms;
-}
-.chat-tool:hover{background:#fff;border-color:var(--border);color:var(--text);}
-.chat-panel-input{padding:10px 12px;border-top:1px solid var(--border-light);background:var(--surface);}
-.chat-emoji-picker{position:absolute;bottom:100%;left:0;z-index:10;max-width:100%;}
-.chat-gif-picker{
-  position:absolute;bottom:100%;right:0;z-index:10;
-  width:300px;background:#fff;border:1px solid var(--border);
-  border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,0.12);
-  padding:8px;
-}
-.chat-gif-picker input{margin-bottom:6px;}
-.chat-gif-results{display:flex;flex-wrap:wrap;gap:4px;max-height:240px;overflow-y:auto;}
-.chat-gif-results img{width:90px;height:68px;object-fit:cover;border-radius:4px;cursor:pointer;transition:transform 100ms;}
-.chat-gif-results img:hover{transform:scale(1.05);}
 
 /* ---- task list (lobby) ---- */
 .task-list{display:flex;flex-direction:column;}
@@ -689,7 +704,7 @@ textarea{resize:vertical;min-height:64px;}
 .mention-name{font-weight:600;color:var(--text);}
 .mention-role{font-size:10px;text-transform:uppercase;letter-spacing:0.3px;color:var(--text-4);}
 .chat-inline{position:relative;overflow:visible;}
-.chat-inline .chat-panel-toolbar{border-top:1px solid var(--border-light);padding:6px 8px;display:flex;gap:2px;position:relative;}
+
 
 @keyframes fadeIn{from{opacity:0}to{opacity:1}}
 @keyframes slideUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}

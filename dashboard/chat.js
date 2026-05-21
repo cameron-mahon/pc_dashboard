@@ -155,9 +155,18 @@ function push(msg) {
 }
 
 function bindToolbar(panel) {
-  const toolbar = panel.querySelector('.chat-panel-toolbar');
+  const toolbar = panel.querySelector('.chat-compose-tools');
   if (!toolbar) return;
   const input = panel.querySelector('input[data-act="send"]');
+  const sendBtn = panel.querySelector('[data-send-btn]');
+  if (sendBtn) {
+    sendBtn.addEventListener('click', () => {
+      if (input && input.value.trim()) {
+        push({ who: whoAmI(), text: input.value.trim() });
+        input.value = '';
+      }
+    });
+  }
 
   // Emoji picker
   const emojiBtn = toolbar.querySelector('[data-chat-emoji]');
@@ -258,10 +267,8 @@ export function initInlineChat() {
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
   if (isVisitor(currentUser())) {
-    const row = document.querySelector('.chat-inline .chat-input-row');
-    const tb = document.querySelector('.chat-inline .chat-panel-toolbar');
-    if (row) row.style.display = 'none';
-    if (tb) tb.style.display = 'none';
+    const compose = document.querySelector('.chat-inline .chat-compose');
+    if (compose) compose.style.display = 'none';
   } else {
     bindInput(document.querySelector('.chat-inline input[data-act="send"]'));
     const inlinePanel = document.querySelector('.chat-inline');
@@ -339,10 +346,8 @@ export function initFloatingChat() {
   window.addEventListener('pc-chat', render);
   window.addEventListener('storage', e => { if (e.key === 'pc_' + KEY) render(); });
   if (isVisitor(currentUser())) {
-    const inp = panel.querySelector('.chat-panel-input');
-    const tb = panel.querySelector('.chat-panel-toolbar');
-    if (inp) inp.style.display = 'none';
-    if (tb) tb.style.display = 'none';
+    const compose = panel.querySelector('.chat-compose');
+    if (compose) compose.style.display = 'none';
   } else {
     bindInput(panel.querySelector('input[data-act="send"]'));
     bindToolbar(panel);
