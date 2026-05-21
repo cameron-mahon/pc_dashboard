@@ -175,9 +175,7 @@ function bindToolbar(panel) {
     if (emojiPicker) { emojiPicker.remove(); emojiPicker = null; return; }
     emojiPicker = document.createElement('emoji-picker');
     emojiPicker.classList.add('chat-emoji-picker');
-    const compose = toolbar.closest('.chat-compose');
-    compose.style.position = 'relative';
-    compose.appendChild(emojiPicker);
+    toolbar.closest('.chat-compose').appendChild(emojiPicker);
     emojiPicker.addEventListener('emoji-click', e => {
       input.value += e.detail.unicode;
       input.focus();
@@ -213,9 +211,7 @@ function bindToolbar(panel) {
     gifPanel = document.createElement('div');
     gifPanel.className = 'chat-gif-picker';
     gifPanel.innerHTML = `<input placeholder="Search GIFs..." data-gif-search><div class="chat-gif-results"></div>`;
-    const composeEl = toolbar.closest('.chat-compose');
-    composeEl.style.position = 'relative';
-    composeEl.appendChild(gifPanel);
+    toolbar.closest('.chat-compose').appendChild(gifPanel);
     const searchInput = gifPanel.querySelector('[data-gif-search]');
     const results = gifPanel.querySelector('.chat-gif-results');
     searchInput.focus();
