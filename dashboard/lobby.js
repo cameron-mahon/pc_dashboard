@@ -2,6 +2,19 @@ import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
 import { currentUser, isVisitor } from './auth.js';
 
+let userNames = [];
+async function loadUsers() {
+  try {
+    const res = await fetch('/api/auth', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'list-users', userId: currentUser()?.id }),
+    });
+    const data = await res.json();
+    if (data.ok) userNames = data.users.map(u => u.name);
+  } catch {}
+}
+
 export function initLobby() {
   if (!document.querySelector('[data-lobby]')) return;
   const user = currentUser();
@@ -30,16 +43,27 @@ export function initLobby() {
   renderNote();
 
   // ---- Tasks ----
-  function initTasks(storeKey, container, addBtn) {
-    function render() {
-      const tasks = get(storeKey, []);
-      if (!tasks.length) {
+  const TASK_KEY = 'tasks';
+  const myContainer = document.querySelector('[data-my-tasks]');
+  const genContainer = document.querySelector('[data-gen-tasks]');
+  const myAdd = document.querySelector('[data-my-add]');
+  const genAdd = document.querySelector('[data-gen-add]');
+
+  function renderTasks() {
+    const tasks = get(TASK_KEY, []);
+    const me = user ? user.name : null;
+    const mine = tasks.filter(t => t.assignee === me);
+    const unclaimed = tasks.filter(t => !t.assignee);
+
+    function renderList(items, container) {
+      if (!items.length) {
         container.innerHTML = '<div class="empty">Nothing here yet</div>';
         return;
       }
-      container.innerHTML = `<div class="task-list">${tasks.map(t =>
+      container.innerHTML = `<div class="task-list">${items.map(t =>
         `<div class="task-item" data-id="${t.id}">
           <span class="task-text">${esc(t.text)}</span>
+          ${t.assignee ? `<span class="area">${esc(t.assignee)}</span>` : ''}
           ${t.area ? `<span class="area">${esc(t.area)}</span>` : ''}
           ${isAdmin ? '<span class="x">×</span>' : ''}
         </div>`
@@ -48,29 +72,39 @@ export function initLobby() {
         btn.addEventListener('click', e => {
           e.stopPropagation();
           const id = btn.closest('.task-item').dataset.id;
-          put(storeKey, get(storeKey, []).filter(t => t.id !== id));
-          render();
+          put(TASK_KEY, get(TASK_KEY, []).filter(t => t.id !== id));
+          renderTasks();
         });
       });
     }
-    render();
-    if (!isAdmin) { addBtn.style.display = 'none'; return; }
-    addBtn.addEventListener('click', () => {
-      openModal('Add Task', [
-        { key: 'text', label: 'Task', placeholder: 'What needs doing?' },
-        { key: 'area', label: 'Area', placeholder: 'pipeline, marketing, backend, frontend...' }
-      ], d => {
-        if (!d.text) return false;
-        const tasks = get(storeKey, []);
-        tasks.push({ id: uid(), text: d.text, area: d.area });
-        put(storeKey, tasks);
-        render();
-      });
-    });
+
+    renderList(mine, myContainer);
+    renderList(unclaimed, genContainer);
   }
 
-  initTasks('my_tasks', document.querySelector('[data-my-tasks]'), document.querySelector('[data-my-add]'));
-  initTasks('gen_tasks', document.querySelector('[data-gen-tasks]'), document.querySelector('[data-gen-add]'));
+  loadUsers().then(() => {
+    renderTasks();
+
+    if (!isAdmin) { myAdd.style.display = 'none'; genAdd.style.display = 'none'; return; }
+
+    function addTask(defaultAssignee) {
+      const assigneeOptions = ['(none)', ...userNames];
+      openModal('Add Task', [
+        { key: 'text', label: 'Task', placeholder: 'What needs doing?' },
+        { key: 'area', label: 'Area', placeholder: 'pipeline, marketing, backend, frontend...' },
+        { key: 'assignee', label: 'Assign to', type: 'select', options: assigneeOptions }
+      ], d => {
+        if (!d.text) return false;
+        const tasks = get(TASK_KEY, []);
+        tasks.push({ id: uid(), text: d.text, area: d.area, assignee: d.assignee === '(none)' ? '' : d.assignee });
+        put(TASK_KEY, tasks);
+        renderTasks();
+      });
+    }
+
+    myAdd.addEventListener('click', () => addTask(user?.name || ''));
+    genAdd.addEventListener('click', () => addTask(''));
+  });
 
   // ---- Gantt ----
   const ganttBox = document.querySelector('[data-gantt]');
