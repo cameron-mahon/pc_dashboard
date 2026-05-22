@@ -4,11 +4,13 @@ import { initFloatingChat } from './chat.js';
 import { initSurface } from './surface.js';
 import { initUserBar } from './userbar.js';
 import { initSidebar } from './sidebar.js';
+import { initRecs } from './recs.js';
 
 if (requireAuth()) {
   initSidebar();
   initUserBar();
   initFloatingChat();
+  initRecs();
 
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get('id');

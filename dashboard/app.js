@@ -3,6 +3,7 @@ import { initInlineChat } from './chat.js';
 import { initLobby } from './lobby.js';
 import { initUserBar } from './userbar.js';
 import { initSidebar } from './sidebar.js';
+import { initRecs } from './recs.js';
 import '@google/model-viewer';
 
 if (requireAuth()) {
@@ -10,6 +11,7 @@ if (requireAuth()) {
   initUserBar();
   initInlineChat();
   initLobby();
+  initRecs();
 
   const floater = document.getElementById('lobby-float');
   if (floater) {
