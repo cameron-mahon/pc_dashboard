@@ -486,6 +486,7 @@ textarea{resize:vertical;min-height:64px;}
   cursor:pointer;font-weight:500;transition:all 120ms;
 }
 .tool:hover{border-color:var(--accent);color:var(--accent);background:#fff;}
+.tool.disabled{opacity:0.4;text-decoration:line-through;cursor:default;pointer-events:none;}
 
 /* ---- modal ---- */
 .modal-bg{
