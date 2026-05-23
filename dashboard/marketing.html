@@ -26,8 +26,37 @@
     <div class="tools">
       <div class="tool disabled">Post Builder</div>
       <div class="tool disabled">Templates</div>
-      <div class="tool disabled">Brand Assets</div>
+      <div class="tool" data-tool-brand-assets>Brand Assets</div>
       <div class="tool disabled">Scheduler</div>
+    </div>
+  </div>
+
+  <!-- brand assets -->
+  <div class="panel brand-assets-panel" data-brand-assets style="margin-top:16px;display:none;">
+    <div class="panel-header">
+      <div class="panel-title">Brand Assets</div>
+    </div>
+    <div class="ba-tabs">
+      <button class="ba-tab active" data-ba-tab="logos">Logos</button>
+      <button class="ba-tab" data-ba-tab="colors">Colors</button>
+      <button class="ba-tab" data-ba-tab="fonts">Fonts</button>
+      <button class="ba-tab" data-ba-tab="images">Images</button>
+    </div>
+    <div class="ba-section" data-ba-section="logos">
+      <div class="ba-grid" data-ba-grid="logos"></div>
+      <label class="btn btn-add ba-upload-btn"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Upload Logo<input type="file" accept="image/*" data-ba-upload="logos" hidden multiple></label>
+    </div>
+    <div class="ba-section" data-ba-section="colors" style="display:none;">
+      <div class="ba-swatches" data-ba-swatches></div>
+      <button class="btn btn-add" data-ba-add-color><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add Color</button>
+    </div>
+    <div class="ba-section" data-ba-section="fonts" style="display:none;">
+      <div class="ba-fonts" data-ba-fonts></div>
+      <button class="btn btn-add" data-ba-add-font><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Add Font</button>
+    </div>
+    <div class="ba-section" data-ba-section="images" style="display:none;">
+      <div class="ba-grid" data-ba-grid="images"></div>
+      <label class="btn btn-add ba-upload-btn"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>Upload Image<input type="file" accept="image/*" data-ba-upload="images" hidden multiple></label>
     </div>
   </div>
 

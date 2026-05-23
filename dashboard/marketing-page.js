@@ -466,4 +466,185 @@ export function initMarketing() {
       renderWorkbenches();
     });
   });
+
+  // ---- Brand Assets ----
+  const baPanel = document.querySelector('[data-brand-assets]');
+  const baTool = document.querySelector('[data-tool-brand-assets]');
+  if (!baPanel || !baTool) return;
+
+  const BA_KEY = 'brand_assets';
+  function getBA() {
+    return get(BA_KEY, { logos: [], colors: [], fonts: [], images: [] });
+  }
+  function saveBA(ba) { put(BA_KEY, ba); }
+
+  baTool.addEventListener('click', () => {
+    const visible = baPanel.style.display !== 'none';
+    baPanel.style.display = visible ? 'none' : '';
+    if (!visible) baPanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // tabs
+  const tabs = baPanel.querySelectorAll('[data-ba-tab]');
+  const sections = baPanel.querySelectorAll('[data-ba-section]');
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      sections.forEach(s => s.style.display = s.dataset.baSection === tab.dataset.baTab ? '' : 'none');
+    });
+  });
+
+  // render image grids (logos + images)
+  function renderGrid(category) {
+    const grid = baPanel.querySelector(`[data-ba-grid="${category}"]`);
+    const ba = getBA();
+    const items = ba[category] || [];
+    if (!items.length) {
+      grid.innerHTML = '<div class="ba-empty">No assets yet</div>';
+      return;
+    }
+    grid.innerHTML = items.map(item =>
+      `<div class="ba-tile" data-ba-id="${item.id}">
+        <img src="${item.data}" alt="${esc(item.name)}">
+        <div class="ba-tile-name">${esc(item.name)}</div>
+        ${viewOnly ? '' : '<span class="x">&times;</span>'}
+      </div>`
+    ).join('');
+    grid.querySelectorAll('.ba-tile').forEach(tile => {
+      const id = tile.dataset.baId;
+      tile.querySelector('img').addEventListener('click', () => {
+        const item = getBA()[category].find(i => i.id === id);
+        if (!item) return;
+        const overlay = document.createElement('div');
+        overlay.className = 'ba-tile-preview';
+        overlay.innerHTML = `<img src="${item.data}" alt="${esc(item.name)}">`;
+        overlay.addEventListener('click', () => overlay.remove());
+        document.body.appendChild(overlay);
+      });
+      const x = tile.querySelector('.x');
+      if (x) x.addEventListener('click', e => {
+        e.stopPropagation();
+        const ba = getBA();
+        ba[category] = ba[category].filter(i => i.id !== id);
+        saveBA(ba);
+        renderGrid(category);
+      });
+    });
+  }
+
+  // file uploads for logos and images
+  baPanel.querySelectorAll('[data-ba-upload]').forEach(input => {
+    const category = input.dataset.baUpload;
+    if (viewOnly) { input.closest('.ba-upload-btn').style.display = 'none'; return; }
+    input.addEventListener('change', () => {
+      const files = Array.from(input.files);
+      if (!files.length) return;
+      let loaded = 0;
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const ba = getBA();
+          ba[category].push({ id: uid(), name: file.name, data: reader.result });
+          saveBA(ba);
+          loaded++;
+          if (loaded === files.length) renderGrid(category);
+        };
+        reader.readAsDataURL(file);
+      });
+      input.value = '';
+    });
+  });
+
+  // colors
+  function renderColors() {
+    const swatches = baPanel.querySelector('[data-ba-swatches]');
+    const ba = getBA();
+    if (!ba.colors.length) {
+      swatches.innerHTML = '<div class="ba-empty">No colors yet</div>';
+      return;
+    }
+    swatches.innerHTML = ba.colors.map(c =>
+      `<div class="ba-swatch" data-ba-id="${c.id}">
+        <div class="ba-swatch-color" style="background:${c.hex}"></div>
+        <div class="ba-swatch-label">${esc(c.name)}</div>
+        <div class="ba-swatch-hex">${esc(c.hex)}</div>
+        ${viewOnly ? '' : '<span class="x">&times;</span>'}
+      </div>`
+    ).join('');
+    swatches.querySelectorAll('.ba-swatch').forEach(sw => {
+      const id = sw.dataset.baId;
+      const x = sw.querySelector('.x');
+      if (x) x.addEventListener('click', e => {
+        e.stopPropagation();
+        const ba = getBA();
+        ba.colors = ba.colors.filter(c => c.id !== id);
+        saveBA(ba);
+        renderColors();
+      });
+    });
+  }
+
+  const addColorBtn = baPanel.querySelector('[data-ba-add-color]');
+  if (viewOnly) addColorBtn.style.display = 'none';
+  else addColorBtn.addEventListener('click', () => {
+    openModal('Add Color', [
+      { key: 'name', label: 'Name', placeholder: 'e.g. Primary Blue' },
+      { key: 'hex', label: 'Hex', placeholder: '#1a73e8' }
+    ], d => {
+      if (!d.name || !d.hex) return false;
+      const hex = d.hex.startsWith('#') ? d.hex : '#' + d.hex;
+      const ba = getBA();
+      ba.colors.push({ id: uid(), name: d.name, hex });
+      saveBA(ba);
+      renderColors();
+    });
+  });
+
+  // fonts
+  function renderFonts() {
+    const fontsBox = baPanel.querySelector('[data-ba-fonts]');
+    const ba = getBA();
+    if (!ba.fonts.length) {
+      fontsBox.innerHTML = '<div class="ba-empty">No fonts yet</div>';
+      return;
+    }
+    fontsBox.innerHTML = ba.fonts.map(f =>
+      `<div class="ba-font" data-ba-id="${f.id}">
+        <div class="ba-font-name">${esc(f.name)}</div>
+        <div class="ba-font-specimen" style="font-family:'${esc(f.name)}',sans-serif;">The quick brown fox jumps over the lazy dog</div>
+        ${viewOnly ? '' : '<span class="x">&times;</span>'}
+      </div>`
+    ).join('');
+    fontsBox.querySelectorAll('.ba-font').forEach(el => {
+      const id = el.dataset.baId;
+      const x = el.querySelector('.x');
+      if (x) x.addEventListener('click', e => {
+        e.stopPropagation();
+        const ba = getBA();
+        ba.fonts = ba.fonts.filter(f => f.id !== id);
+        saveBA(ba);
+        renderFonts();
+      });
+    });
+  }
+
+  const addFontBtn = baPanel.querySelector('[data-ba-add-font]');
+  if (viewOnly) addFontBtn.style.display = 'none';
+  else addFontBtn.addEventListener('click', () => {
+    openModal('Add Font', [
+      { key: 'name', label: 'Font name', placeholder: 'e.g. Inter, Roboto, Georgia...' }
+    ], d => {
+      if (!d.name) return false;
+      const ba = getBA();
+      ba.fonts.push({ id: uid(), name: d.name });
+      saveBA(ba);
+      renderFonts();
+    });
+  });
+
+  renderGrid('logos');
+  renderGrid('images');
+  renderColors();
+  renderFonts();
 }
