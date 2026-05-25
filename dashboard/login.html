@@ -59,6 +59,10 @@
     <label>You Are</label>
     <div data-assigned-name style="font-size:16px;font-weight:700;color:var(--accent);padding:8px 0;"></div>
   </div>
+  <div class="login-field" data-invite-field style="display:none;">
+    <label>Invite Code</label>
+    <input data-invite placeholder="Invite code" autocomplete="off">
+  </div>
   <div class="login-field">
     <label>Password</label>
     <input type="password" data-password placeholder="Password">
@@ -95,6 +99,8 @@ const nameField = document.querySelector('[data-name-field]');
 const nameInput = document.querySelector('[data-name]');
 const assignedField = document.querySelector('[data-assigned-field]');
 const assignedName = document.querySelector('[data-assigned-name]');
+const inviteField = document.querySelector('[data-invite-field]');
+const inviteInput = document.querySelector('[data-invite]');
 const passInput = document.querySelector('[data-password]');
 const errorEl = document.querySelector('[data-error]');
 const submitBtn = document.querySelector('[data-submit]');
@@ -106,6 +112,7 @@ function updateUI() {
   if (mode === 'login') {
     nameField.style.display = '';
     assignedField.style.display = 'none';
+    inviteField.style.display = 'none';
     submitBtn.textContent = 'Sign In';
     subEl.textContent = 'Sign in to your workspace';
     toggleEl.innerHTML = "Don't have an account? <span>Sign up</span>";
@@ -113,6 +120,7 @@ function updateUI() {
   } else {
     nameField.style.display = 'none';
     assignedField.style.display = '';
+    inviteField.style.display = '';
     assignedName.textContent = 'Loading...';
     submitBtn.textContent = 'Create Account';
     subEl.textContent = 'You have been assigned';
@@ -150,7 +158,9 @@ async function submit() {
     if (!result.ok) { errorEl.textContent = result.error; return; }
   } else {
     if (!pass) { errorEl.textContent = 'Set a password'; return; }
-    const result = await signup(pass);
+    const invite = inviteInput.value.trim();
+    if (!invite) { errorEl.textContent = 'Invite code required'; return; }
+    const result = await signup(pass, invite);
     if (!result.ok) { errorEl.textContent = result.error; return; }
   }
   window.location.href = 'index.html';

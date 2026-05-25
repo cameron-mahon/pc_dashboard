@@ -1,6 +1,8 @@
 const { put, list, get: getBlob } = require('@vercel/blob');
+const bcrypt = require('bcryptjs');
 
 const BLOB_KEY = 'pc-dashboard-users.json';
+const SALT_ROUNDS = 10;
 
 async function getUsers() {
   try {
@@ -44,6 +46,10 @@ module.exports = async function handler(req, res) {
   }
 
   if (action === 'signup') {
+    const inviteCode = process.env.PC_INVITE_CODE;
+    if (!inviteCode) return res.json({ ok: false, error: 'Signup is disabled' });
+    const { invite } = req.body;
+    if (invite !== inviteCode) return res.json({ ok: false, error: 'Invalid invite code' });
     if (!password) return res.status(400).json({ ok: false, error: 'Password required' });
     const users = await getUsers();
     const CRABS = [
@@ -70,10 +76,11 @@ module.exports = async function handler(req, res) {
         : 'Crab #' + (users.length + 1);
       role = 'member';
     }
+    const hashed = await bcrypt.hash(password, SALT_ROUNDS);
     const user = {
       id: crypto.randomUUID(),
       name: crabName,
-      password,
+      password: hashed,
       role,
       created: Date.now(),
     };
@@ -85,22 +92,31 @@ module.exports = async function handler(req, res) {
   if (action === 'login') {
     if (!name || !password) return res.status(400).json({ ok: false, error: 'Name and password required' });
     const users = await getUsers();
-    const user = users.find(u =>
-      u.name.toLowerCase() === name.toLowerCase() && u.password === password
-    );
+    const user = users.find(u => u.name.toLowerCase() === name.toLowerCase());
     if (!user) return res.json({ ok: false, error: 'Wrong name or password' });
+    const isHashed = user.password.startsWith('$2');
+    const match = isHashed
+      ? await bcrypt.compare(password, user.password)
+      : password === user.password;
+    if (!match) return res.json({ ok: false, error: 'Wrong name or password' });
+    if (!isHashed) {
+      user.password = await bcrypt.hash(password, SALT_ROUNDS);
+      await saveUsers(users);
+    }
     return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
   }
 
   if (action === 'visitor') {
-    if (password !== 'p455word1') return res.json({ ok: false, error: 'Wrong password' });
+    const visitorPass = process.env.PC_VISITOR_PASSWORD;
+    if (!visitorPass) return res.json({ ok: false, error: 'Visitor access is disabled' });
+    if (password !== visitorPass) return res.json({ ok: false, error: 'Wrong password' });
     const users = await getUsers();
     let visitor = users.find(u => u.role === 'visitor');
     if (!visitor) {
       visitor = {
         id: crypto.randomUUID(),
         name: 'Pea',
-        password: 'p455word1',
+        password: await bcrypt.hash(visitorPass, SALT_ROUNDS),
         role: 'visitor',
         created: Date.now(),
       };

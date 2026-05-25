@@ -26,11 +26,11 @@ export async function signupVisitor(password) {
   return data;
 }
 
-export async function signup(password) {
+export async function signup(password, invite) {
   const res = await fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'signup', password }),
+    body: JSON.stringify({ action: 'signup', password, invite }),
   });
   const data = await res.json();
   if (data.ok) saveSession({ userId: data.user.id, user: data.user });
