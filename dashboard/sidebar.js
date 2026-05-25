@@ -18,14 +18,16 @@ export function initSidebar() {
     const roomId = params.get('id');
     const rooms = get('rooms', []);
 
-    const builtIn = [
-      { name: 'Lobby', href: 'index.html' },
+    const sharedRooms = [
       { name: 'Pipeline', href: 'pipeline.html' },
       { name: 'Marketing', href: 'marketing.html' },
+    ];
+
+    const personalTools = [
       { name: 'Pinboard', href: 'pinboard.html' },
     ];
 
-    const builtInHTML = builtIn.map(r => {
+    const sharedHTML = sharedRooms.map(r => {
       const active = page === r.href ? ' active' : '';
       return `<a href="${r.href}" class="${active}">${esc(r.name)}</a>`;
     }).join('');
@@ -39,10 +41,17 @@ export function initSidebar() {
       </a>`;
     }).join('');
 
-    const divider = rooms.length ? '<div class="sidebar-divider"></div>' : '';
+    const personalHTML = personalTools.map(r => {
+      const active = page === r.href ? ' active' : '';
+      return `<a href="${r.href}" class="${active}">${esc(r.name)}</a>`;
+    }).join('');
 
-    nav.innerHTML = builtInHTML + divider + customHTML +
-      (isAdmin ? `<button class="sidebar-add" data-add-room><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>New Room</button>` : '');
+    nav.innerHTML =
+      '<div class="sidebar-section-label">Rooms</div>' +
+      sharedHTML + customHTML +
+      (isAdmin ? `<button class="sidebar-add" data-add-room><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="8"/><line x1="10" y1="6.5" x2="10" y2="13.5"/><line x1="6.5" y1="10" x2="13.5" y2="10"/></svg>New Room</button>` : '') +
+      '<div class="sidebar-section-label">Personal</div>' +
+      personalHTML;
 
     nav.querySelectorAll('[data-remove]').forEach(btn => {
       btn.addEventListener('click', e => {

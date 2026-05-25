@@ -49,7 +49,9 @@ body{
   font-size:15px;font-weight:700;letter-spacing:-0.3px;
   color:var(--accent);padding:4px 18px 16px;
   display:flex;align-items:center;gap:8px;
+  text-decoration:none;
 }
+.sidebar-brand:hover{opacity:0.8;}
 .sidebar-logo{width:28px;height:28px;flex-shrink:0;border-radius:4px;}
 .sidebar-nav{padding:0 10px;display:flex;flex-direction:column;gap:2px;}
 .sidebar-nav a{
@@ -67,6 +69,10 @@ body{
 .sidebar-room:hover .sidebar-room-x{opacity:1;}
 .sidebar-room-x:hover{color:var(--red);}
 .sidebar-divider{height:1px;background:var(--border-light);margin:8px 0;}
+.sidebar-section-label{
+  font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;
+  color:var(--text-4);padding:12px 12px 4px;
+}
 .sidebar-add{
   display:flex;align-items:center;gap:6px;
   width:100%;padding:8px 12px;margin-top:4px;
@@ -758,7 +764,7 @@ textarea{resize:vertical;min-height:64px;}
 
 /* ---- pinboard ---- */
 .pb-container{
-  position:fixed;top:0;left:200px;right:0;bottom:0;
+  position:fixed;top:0;left:240px;right:0;bottom:0;
   background:#0e0e0e;overflow:hidden;
   display:flex;flex-direction:column;
 }
