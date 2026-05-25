@@ -22,6 +22,7 @@ export function initSidebar() {
       { name: 'Lobby', href: 'index.html' },
       { name: 'Pipeline', href: 'pipeline.html' },
       { name: 'Marketing', href: 'marketing.html' },
+      { name: 'Pinboard', href: 'pinboard.html' },
     ];
 
     const builtInHTML = builtIn.map(r => {
