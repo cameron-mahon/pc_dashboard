@@ -6,7 +6,7 @@ import { initSidebar } from './sidebar.js';
 import { initRecs } from './recs.js';
 import '@google/model-viewer';
 
-if (requireAuth()) {
+requireAuth().then(ok => { if (!ok) return;
   initSidebar();
   initUserBar();
   initInlineChat();
@@ -73,4 +73,4 @@ if (requireAuth()) {
     }
     tick();
   }
-}
+});

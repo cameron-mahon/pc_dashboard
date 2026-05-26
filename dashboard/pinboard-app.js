@@ -5,10 +5,10 @@ import { initSidebar } from './sidebar.js';
 import { initRecs } from './recs.js';
 import { initPinboard } from './pinboard.js';
 
-if (requireAuth()) {
+requireAuth().then(ok => { if (!ok) return;
   initSidebar();
   initUserBar();
   initFloatingChat();
   initRecs();
   initPinboard();
-}
+});

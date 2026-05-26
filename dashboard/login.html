@@ -87,11 +87,13 @@
 </div>
 
 <script type="module">
-import { signup, login, signupVisitor, currentUser } from './auth.js';
+import { signup, login, signupVisitor } from './auth.js';
 
-if (currentUser()) {
-  window.location.href = 'index.html';
-}
+fetch('/api/auth', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ action: 'me' }),
+}).then(r => r.json()).then(d => { if (d.ok) window.location.href = 'index.html'; }).catch(() => {});
 
 let mode = 'login';
 

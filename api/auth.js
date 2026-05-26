@@ -1,8 +1,48 @@
 const { put, list, get: getBlob } = require('@vercel/blob');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const BLOB_KEY = 'pc-dashboard-users.json';
 const SALT_ROUNDS = 10;
+
+function sign(userId) {
+  const secret = process.env.PC_SESSION_SECRET;
+  const sig = crypto.createHmac('sha256', secret).update(userId).digest('hex');
+  return `${userId}.${sig}`;
+}
+
+function verify(token) {
+  if (!token) return null;
+  const dot = token.indexOf('.');
+  if (dot === -1) return null;
+  const userId = token.slice(0, dot);
+  const sig = token.slice(dot + 1);
+  if (!userId || !sig) return null;
+  const secret = process.env.PC_SESSION_SECRET;
+  const expected = crypto.createHmac('sha256', secret).update(userId).digest('hex');
+  if (sig.length !== expected.length) return null;
+  if (!crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  return userId;
+}
+
+function setSessionCookie(res, userId) {
+  const token = sign(userId);
+  res.setHeader('Set-Cookie',
+    `pc_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=${60 * 60 * 24 * 30}`
+  );
+}
+
+function clearSessionCookie(res) {
+  res.setHeader('Set-Cookie',
+    'pc_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0'
+  );
+}
+
+function getSessionUserId(req) {
+  const cookies = req.headers.cookie || '';
+  const match = cookies.match(/(?:^|;\s*)pc_session=([^;]+)/);
+  return match ? verify(match[1]) : null;
+}
 
 async function getUsers() {
   try {
@@ -32,6 +72,20 @@ module.exports = async function handler(req, res) {
   }
 
   const { action, name, password } = req.body || {};
+
+  if (action === 'me') {
+    const userId = getSessionUserId(req);
+    if (!userId) return res.json({ ok: false });
+    const users = await getUsers();
+    const user = users.find(u => u.id === userId);
+    if (!user) { clearSessionCookie(res); return res.json({ ok: false }); }
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
+  }
+
+  if (action === 'logout') {
+    clearSessionCookie(res);
+    return res.json({ ok: true });
+  }
 
   // one-time migration: promote Chesapeake Blue to admin
   if (action === 'migrate') {
@@ -86,6 +140,7 @@ module.exports = async function handler(req, res) {
     };
     users.push(user);
     await saveUsers(users);
+    setSessionCookie(res, user.id);
     return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
   }
 
@@ -103,6 +158,7 @@ module.exports = async function handler(req, res) {
       user.password = await bcrypt.hash(password, SALT_ROUNDS);
       await saveUsers(users);
     }
+    setSessionCookie(res, user.id);
     return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
   }
 
@@ -123,6 +179,7 @@ module.exports = async function handler(req, res) {
       users.push(visitor);
       await saveUsers(users);
     }
+    setSessionCookie(res, visitor.id);
     return res.json({ ok: true, user: { id: visitor.id, name: visitor.name, role: visitor.role } });
   }
 
@@ -156,18 +213,19 @@ module.exports = async function handler(req, res) {
   }
 
   if (action === 'list-users') {
-    const { userId } = req.body;
+    const callerId = getSessionUserId(req);
     const users = await getUsers();
-    const caller = userId ? users.find(u => u.id === userId) : null;
+    const caller = callerId ? users.find(u => u.id === callerId) : null;
     const isAdmin = caller && (caller.role === 'superadmin' || caller.role === 'admin');
     return res.json({ ok: true, users: users.map(u => ({ name: u.name, ...(isAdmin ? { role: u.role } : {}) })) });
   }
 
   if (action === 'set-role') {
-    const { targetName, newRole, userId } = req.body;
-    if (!targetName || !newRole || !userId) return res.json({ ok: false, error: 'Missing fields' });
+    const { targetName, newRole } = req.body;
+    const callerId = getSessionUserId(req);
+    if (!targetName || !newRole || !callerId) return res.json({ ok: false, error: 'Missing fields' });
     const users = await getUsers();
-    const caller = users.find(u => u.id === userId);
+    const caller = users.find(u => u.id === callerId);
     if (!caller || (caller.role !== 'superadmin' && caller.role !== 'admin')) {
       return res.json({ ok: false, error: 'Not authorized' });
     }

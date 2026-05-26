@@ -20,7 +20,7 @@ async function fetchUsers() {
     const res = await fetch('/api/auth', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'list-users', userId: currentUser()?.id }),
+      body: JSON.stringify({ action: 'list-users' }),
     });
     const data = await res.json();
     if (data.ok) cachedUsers = data.users;

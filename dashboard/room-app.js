@@ -6,7 +6,7 @@ import { initUserBar } from './userbar.js';
 import { initSidebar } from './sidebar.js';
 import { initRecs } from './recs.js';
 
-if (requireAuth()) {
+requireAuth().then(ok => { if (!ok) return;
   initSidebar();
   initUserBar();
   initFloatingChat();
@@ -27,4 +27,4 @@ if (requireAuth()) {
       document.querySelector('[data-room-file-add]')
     );
   }
-}
+});
