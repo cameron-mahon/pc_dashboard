@@ -51,12 +51,16 @@
 
   <div class="login-error" data-error></div>
 
-  <div class="login-field" data-name-field>
-    <label>Your Crab</label>
-    <input data-name placeholder="Your name" autocomplete="off">
+  <div class="login-field" data-email-field>
+    <label>Email</label>
+    <input type="email" data-email placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="login-field" data-name-field style="display:none;">
+    <label>Your Name</label>
+    <input data-name placeholder="Your name" autocomplete="name">
   </div>
   <div class="login-field" data-assigned-field style="display:none;">
-    <label>You Are</label>
+    <label>Your Crab</label>
     <div data-assigned-name style="font-size:16px;font-weight:700;color:var(--accent);padding:8px 0;"></div>
   </div>
   <div class="login-field" data-invite-field style="display:none;">
@@ -97,6 +101,8 @@ fetch('/api/auth', {
 
 let mode = 'login';
 
+const emailField = document.querySelector('[data-email-field]');
+const emailInput = document.querySelector('[data-email]');
 const nameField = document.querySelector('[data-name-field]');
 const nameInput = document.querySelector('[data-name]');
 const assignedField = document.querySelector('[data-assigned-field]');
@@ -112,7 +118,8 @@ const roleNote = document.querySelector('[data-role-note]');
 
 function updateUI() {
   if (mode === 'login') {
-    nameField.style.display = '';
+    emailField.style.display = '';
+    nameField.style.display = 'none';
     assignedField.style.display = 'none';
     inviteField.style.display = 'none';
     submitBtn.textContent = 'Sign In';
@@ -120,12 +127,13 @@ function updateUI() {
     toggleEl.innerHTML = "Don't have an account? <span>Sign up</span>";
     roleNote.textContent = '';
   } else {
-    nameField.style.display = 'none';
+    emailField.style.display = '';
+    nameField.style.display = '';
     assignedField.style.display = '';
     inviteField.style.display = '';
     assignedName.textContent = 'Loading...';
     submitBtn.textContent = 'Create Account';
-    subEl.textContent = 'You have been assigned';
+    subEl.textContent = 'Create your account';
     toggleEl.innerHTML = "Already have an account? <span>Sign in</span>";
     roleNote.textContent = '';
     fetch('/api/auth', {
@@ -134,13 +142,13 @@ function updateUI() {
       body: JSON.stringify({ action: 'preview' }),
     }).then(r => r.json()).then(data => {
       if (data.ok && mode === 'signup') {
-        assignedName.textContent = data.name;
+        assignedName.textContent = data.crab;
         roleNote.textContent = data.role === 'superadmin'
           ? 'First account becomes Superadmin'
           : 'You will join as a Member';
       }
     }).catch(() => {
-      assignedName.textContent = '(name assigned on signup)';
+      assignedName.textContent = '(crab assigned on signup)';
     });
   }
   errorEl.textContent = '';
@@ -154,15 +162,19 @@ toggleEl.addEventListener('click', () => {
 async function submit() {
   const pass = passInput.value;
   if (mode === 'login') {
-    const name = nameInput.value.trim();
-    if (!name || !pass) { errorEl.textContent = 'Name and password required'; return; }
-    const result = await login(name, pass);
+    const email = emailInput.value.trim();
+    if (!email || !pass) { errorEl.textContent = 'Email and password required'; return; }
+    const result = await login(email, pass);
     if (!result.ok) { errorEl.textContent = result.error; return; }
   } else {
+    const email = emailInput.value.trim();
+    const name = nameInput.value.trim();
+    if (!email) { errorEl.textContent = 'Email required'; return; }
+    if (!name) { errorEl.textContent = 'Name required'; return; }
     if (!pass) { errorEl.textContent = 'Set a password'; return; }
     const invite = inviteInput.value.trim();
     if (!invite) { errorEl.textContent = 'Invite code required'; return; }
-    const result = await signup(pass, invite);
+    const result = await signup(name, email, pass, invite);
     if (!result.ok) { errorEl.textContent = result.error; return; }
   }
   window.location.href = 'index.html';
@@ -170,7 +182,8 @@ async function submit() {
 
 submitBtn.addEventListener('click', submit);
 passInput.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
-nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') passInput.focus(); });
+emailInput.addEventListener('keydown', e => { if (e.key === 'Enter') { mode === 'login' ? passInput.focus() : nameInput.focus(); } });
+nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') inviteInput.focus(); });
 
 const visitBtn = document.querySelector('[data-visit]');
 const visitPrompt = document.querySelector('[data-visit-prompt]');

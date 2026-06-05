@@ -1,4 +1,4 @@
-import { currentUser, logout } from './auth.js';
+import { currentUser, logout, updateProfile } from './auth.js';
 import { esc } from './store.js';
 
 const CRAB_PHOTOS = {
@@ -67,11 +67,106 @@ export function initUserBar() {
   const container = document.querySelector('[data-sidebar-profile]');
   if (!container) return;
 
-  container.innerHTML = `
-    <span class="user-bar-name">${esc(user.name)}</span>
-    ${avatarImg(user.name, 'avatar avatar-lg')}
-    <span class="user-bar-role">${esc(user.role)}</span>
-    <button class="user-bar-logout"><svg viewBox="0 0 20 20"><path d="M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3"/><path d="M14 13l3-3-3-3"/><path d="M17 10H7"/></svg>Sign out</button>
-  `;
-  container.querySelector('.user-bar-logout').addEventListener('click', logout);
+  const crabKey = user.crab || user.name;
+
+  function render() {
+    const needsEmail = !user.email;
+    container.innerHTML = `
+      <span class="user-bar-name" title="Click to edit" style="cursor:pointer;">${esc(user.name)}</span>
+      ${avatarImg(crabKey, 'avatar avatar-lg')}
+      <span class="user-bar-role">${esc(user.role)}</span>
+      ${needsEmail ? '<div class="user-bar-email-prompt" style="font-size:11px;color:var(--gold);cursor:pointer;margin:4px 0;">+ Add email to sign in with</div>' : ''}
+      <button class="user-bar-logout"><svg viewBox="0 0 20 20"><path d="M7 3H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h3"/><path d="M14 13l3-3-3-3"/><path d="M17 10H7"/></svg>Sign out</button>
+    `;
+    container.querySelector('.user-bar-logout').addEventListener('click', logout);
+    container.querySelector('.user-bar-name').addEventListener('click', startEdit);
+    const emailPrompt = container.querySelector('.user-bar-email-prompt');
+    if (emailPrompt) emailPrompt.addEventListener('click', startEmailEdit);
+  }
+
+  function startEdit() {
+    const nameEl = container.querySelector('.user-bar-name');
+    const needsEmail = !user.email;
+
+    const form = document.createElement('div');
+    form.style.cssText = 'display:flex;flex-direction:column;gap:6px;width:100%;';
+    const nameInput = document.createElement('input');
+    nameInput.value = user.name;
+    nameInput.placeholder = 'Your name';
+    nameInput.style.cssText = 'font-size:inherit;font-weight:inherit;width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--bg-2);color:var(--text-1);';
+    form.appendChild(nameInput);
+
+    if (needsEmail) {
+      const emailInput = document.createElement('input');
+      emailInput.type = 'email';
+      emailInput.placeholder = 'Add email for sign-in';
+      emailInput.style.cssText = 'font-size:12px;width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--bg-2);color:var(--text-1);';
+      form.appendChild(emailInput);
+      form._emailInput = emailInput;
+    }
+
+    nameEl.replaceWith(form);
+    nameInput.focus();
+    nameInput.select();
+
+    let saving = false;
+    async function save() {
+      if (saving) return;
+      saving = true;
+      const newName = nameInput.value.trim();
+      const newEmail = form._emailInput ? form._emailInput.value.trim() : '';
+      if ((!newName || newName === user.name) && !newEmail) { render(); return; }
+      const updates = {};
+      if (newName && newName !== user.name) updates.name = newName;
+      if (newEmail) updates.email = newEmail;
+      if (Object.keys(updates).length) {
+        const result = await updateProfile(updates);
+        if (result.ok) {
+          user.name = result.user.name;
+          user.email = result.user.email;
+          user.crab = result.user.crab;
+        }
+      }
+      render();
+    }
+
+    form.addEventListener('focusout', e => {
+      if (!form.contains(e.relatedTarget)) save();
+    });
+    form.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); save(); }
+      if (e.key === 'Escape') { render(); }
+    });
+  }
+
+  function startEmailEdit() {
+    const prompt = container.querySelector('.user-bar-email-prompt');
+    const input = document.createElement('input');
+    input.type = 'email';
+    input.placeholder = 'your@email.com';
+    input.style.cssText = 'font-size:12px;width:100%;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:var(--bg-2);color:var(--text-1);';
+    prompt.replaceWith(input);
+    input.focus();
+
+    let saving = false;
+    async function save() {
+      if (saving) return;
+      saving = true;
+      const email = input.value.trim();
+      if (!email) { render(); return; }
+      const result = await updateProfile({ email });
+      if (result.ok) {
+        user.email = result.user.email;
+        user.crab = result.user.crab;
+      }
+      render();
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+      if (e.key === 'Escape') { render(); }
+    });
+  }
+
+  render();
 }

@@ -79,7 +79,7 @@ module.exports = async function handler(req, res) {
     const users = await getUsers();
     const user = users.find(u => u.id === userId);
     if (!user) { clearSessionCookie(res); return res.json({ ok: false }); }
-    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, email: user.email || null, crab: user.crab || null } });
   }
 
   if (action === 'logout') {
@@ -102,10 +102,16 @@ module.exports = async function handler(req, res) {
   if (action === 'signup') {
     const inviteCode = process.env.PC_INVITE_CODE;
     if (!inviteCode) return res.json({ ok: false, error: 'Signup is disabled' });
-    const { invite } = req.body;
+    const { invite, email } = req.body;
     if (invite !== inviteCode) return res.json({ ok: false, error: 'Invalid invite code' });
     if (!password) return res.status(400).json({ ok: false, error: 'Password required' });
+    if (!name || !name.trim()) return res.status(400).json({ ok: false, error: 'Name required' });
+    if (!email || !email.trim()) return res.status(400).json({ ok: false, error: 'Email required' });
     const users = await getUsers();
+    const emailLower = email.trim().toLowerCase();
+    if (users.find(u => u.email && u.email.toLowerCase() === emailLower)) {
+      return res.json({ ok: false, error: 'Email already in use' });
+    }
     const CRABS = [
       'Yeti','Maryland Blue','Dungeness','Florida Stone','Peekytoe',
       'Jonah','Japanese Spider','Snow','Brown','Chesapeake Blue',
@@ -117,23 +123,18 @@ module.exports = async function handler(req, res) {
       'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
       'Spiny King','Pom Pom','Horseshoe','Triops'
     ];
-    let crabName;
-    let role;
-    if (users.length === 0) {
-      crabName = CRABS[0];
-      role = 'superadmin';
-    } else {
-      const taken = new Set(users.map(u => u.name));
-      const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
-      crabName = available.length
-        ? available[Math.floor(Math.random() * available.length)]
-        : 'Crab #' + (users.length + 1);
-      role = 'member';
-    }
+    const takenCrabs = new Set(users.map(u => u.crab || u.name));
+    const available = CRABS.filter(c => !takenCrabs.has(c) && c !== 'Pea');
+    const crab = available.length
+      ? available[Math.floor(Math.random() * available.length)]
+      : 'Crab #' + (users.length + 1);
+    const role = users.length === 0 ? 'superadmin' : 'member';
     const hashed = await bcrypt.hash(password, SALT_ROUNDS);
     const user = {
       id: crypto.randomUUID(),
-      name: crabName,
+      name: name.trim(),
+      email: emailLower,
+      crab,
       password: hashed,
       role,
       created: Date.now(),
@@ -141,25 +142,29 @@ module.exports = async function handler(req, res) {
     users.push(user);
     await saveUsers(users);
     setSessionCookie(res, user.id);
-    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, email: user.email, crab: user.crab } });
   }
 
   if (action === 'login') {
-    if (!name || !password) return res.status(400).json({ ok: false, error: 'Name and password required' });
+    const { email } = req.body;
+    if ((!email && !name) || !password) return res.status(400).json({ ok: false, error: 'Email and password required' });
     const users = await getUsers();
-    const user = users.find(u => u.name.toLowerCase() === name.toLowerCase());
-    if (!user) return res.json({ ok: false, error: 'Wrong name or password' });
+    const loginKey = (email || name || '').trim().toLowerCase();
+    // try email first, fall back to crab name for legacy accounts
+    let user = users.find(u => u.email && u.email.toLowerCase() === loginKey);
+    if (!user) user = users.find(u => u.name.toLowerCase() === loginKey);
+    if (!user) return res.json({ ok: false, error: 'Wrong email or password' });
     const isHashed = user.password.startsWith('$2');
     const match = isHashed
       ? await bcrypt.compare(password, user.password)
       : password === user.password;
-    if (!match) return res.json({ ok: false, error: 'Wrong name or password' });
+    if (!match) return res.json({ ok: false, error: 'Wrong email or password' });
     if (!isHashed) {
       user.password = await bcrypt.hash(password, SALT_ROUNDS);
       await saveUsers(users);
     }
     setSessionCookie(res, user.id);
-    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, email: user.email || null, crab: user.crab || null } });
   }
 
   if (action === 'visitor') {
@@ -183,6 +188,38 @@ module.exports = async function handler(req, res) {
     return res.json({ ok: true, user: { id: visitor.id, name: visitor.name, role: visitor.role } });
   }
 
+  if (action === 'update-profile') {
+    const callerId = getSessionUserId(req);
+    if (!callerId) return res.json({ ok: false, error: 'Not signed in' });
+    const { email } = req.body;
+    const users = await getUsers();
+    const user = users.find(u => u.id === callerId);
+    if (!user) return res.json({ ok: false, error: 'User not found' });
+    if (name && name.trim()) user.name = name.trim();
+    if (email && email.trim()) {
+      const emailLower = email.trim().toLowerCase();
+      const taken = users.find(u => u.id !== callerId && u.email && u.email.toLowerCase() === emailLower);
+      if (taken) return res.json({ ok: false, error: 'Email already in use' });
+      user.email = emailLower;
+    }
+    if (!user.crab && user.name) {
+      const CRABS = [
+        'Yeti','Maryland Blue','Dungeness','Florida Stone','Peekytoe',
+        'Jonah','Japanese Spider','Snow','Brown','Chesapeake Blue',
+        'Mud','Mangrove','Flower','Ghost','Fiddler','Red Rock',
+        'Southern Kelp','Sheep','Box','Calico','Arrow','Green',
+        'Velvet Belly','Halloween Moon','Soldier','Mitten','Shore',
+        'Marble','Yellowline Arrow','Spider Decorator','Alaskan King',
+        'Red King','Blue King','Golden King','Coconut','Hermit',
+        'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
+        'Spiny King','Pom Pom','Horseshoe','Triops'
+      ];
+      if (CRABS.includes(user.name)) user.crab = user.name;
+    }
+    await saveUsers(users);
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, email: user.email || null, crab: user.crab || null } });
+  }
+
   if (action === 'preview') {
     const users = await getUsers();
     const CRABS = [
@@ -196,20 +233,13 @@ module.exports = async function handler(req, res) {
       'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
       'Spiny King','Pom Pom','Horseshoe','Triops'
     ];
-    let crabName;
-    let role;
-    if (users.length === 0) {
-      crabName = CRABS[0];
-      role = 'superadmin';
-    } else {
-      const taken = new Set(users.map(u => u.name));
-      const available = CRABS.filter(c => !taken.has(c) && c !== 'Pea');
-      crabName = available.length
-        ? available[Math.floor(Math.random() * available.length)]
-        : 'Crab #' + (users.length + 1);
-      role = 'member';
-    }
-    return res.json({ ok: true, name: crabName, role });
+    const takenCrabs = new Set(users.map(u => u.crab || u.name));
+    const available = CRABS.filter(c => !takenCrabs.has(c) && c !== 'Pea');
+    const crab = available.length
+      ? available[Math.floor(Math.random() * available.length)]
+      : 'Crab #' + (users.length + 1);
+    const role = users.length === 0 ? 'superadmin' : 'member';
+    return res.json({ ok: true, crab, role });
   }
 
   if (action === 'list-users') {
@@ -217,7 +247,7 @@ module.exports = async function handler(req, res) {
     const users = await getUsers();
     const caller = callerId ? users.find(u => u.id === callerId) : null;
     const isAdmin = caller && (caller.role === 'superadmin' || caller.role === 'admin');
-    return res.json({ ok: true, users: users.map(u => ({ name: u.name, ...(isAdmin ? { role: u.role } : {}) })) });
+    return res.json({ ok: true, users: users.map(u => ({ name: u.name, crab: u.crab || null, ...(isAdmin ? { role: u.role } : {}) })) });
   }
 
   if (action === 'set-role') {
@@ -242,7 +272,7 @@ module.exports = async function handler(req, res) {
     const users = await getUsers();
     const user = users.find(u => u.id === userId);
     if (!user) return res.json({ ok: false });
-    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role } });
+    return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, crab: user.crab || null } });
   }
 
   return res.status(400).json({ error: 'Unknown action' });

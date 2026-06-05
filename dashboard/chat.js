@@ -42,7 +42,11 @@ function renderText(text) {
 }
 
 function avatarHTML(name) {
-  const src = getCrabPhoto(name);
+  let src = getCrabPhoto(name);
+  if (!src && cachedUsers) {
+    const u = cachedUsers.find(u => u.name === name);
+    if (u && u.crab) src = getCrabPhoto(u.crab);
+  }
   if (src) return `<img src="${esc(src)}" alt="${esc(name)}">`;
   const ini = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   return `<span class="msg-avatar-fallback">${ini}</span>`;

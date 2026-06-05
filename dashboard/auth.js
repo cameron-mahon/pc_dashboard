@@ -22,11 +22,11 @@ export async function requireAuth() {
   return false;
 }
 
-export async function signup(password, invite) {
+export async function signup(name, email, password, invite) {
   const res = await fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'signup', password, invite }),
+    body: JSON.stringify({ action: 'signup', name, email, password, invite }),
   });
   const data = await res.json();
   if (data.ok) _user = data.user;
@@ -44,11 +44,22 @@ export async function signupVisitor(password) {
   return data;
 }
 
-export async function login(name, password) {
+export async function login(email, password) {
   const res = await fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'login', name, password }),
+    body: JSON.stringify({ action: 'login', email, password }),
+  });
+  const data = await res.json();
+  if (data.ok) _user = data.user;
+  return data;
+}
+
+export async function updateProfile({ name, email } = {}) {
+  const res = await fetch(API, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'update-profile', name, email }),
   });
   const data = await res.json();
   if (data.ok) _user = data.user;
