@@ -1,5 +1,6 @@
 import { get, put, uid, esc } from './store.js';
 import { currentUser } from './auth.js';
+import { uploadFile } from './upload.js';
 
 const COLORS = ['#666','#4caf50','#42a5f5','#ab47bc','#ffca28','#ef5350','#ff9800','#26c6da','#ec407a','#8d6e63'];
 
@@ -138,21 +139,28 @@ export function initPinboard() {
   // card HTML
   function cardHTML(card) {
     let inner = '';
-    if (card.type === 'image' && card.dataUrl) {
-      inner += `<img class="pb-card-image" src="${card.dataUrl}" alt="">`;
+    const src = card.blobUrl || card.dataUrl;
+    if (card.type === 'image' && src) {
+      inner += `<img class="pb-card-image" src="${src}" alt="">`;
+    }
+    if (card.type === 'video' && src) {
+      inner += `<video class="pb-card-image" src="${src}" controls preload="metadata" style="max-width:100%;"></video>`;
     }
     inner += `<div class="pb-card-header"><div class="pb-card-title">${esc(card.title || '')}</div></div>`;
 
     if (card.type === 'file') {
       const ext = (card.fileName || '').split('.').pop().toLowerCase();
-      if (ext === 'pdf' && (card.dataUrl || card.thumbnail)) {
+      const VIDEO_EXTS = ['mp4','webm','mov','ogg','m4v'];
+      if (VIDEO_EXTS.includes(ext) && src) {
+        inner += `<video class="pb-card-image" src="${src}" controls preload="metadata" style="max-width:100%;"></video>`;
+      } else if (ext === 'pdf' && (src || card.thumbnail)) {
         if (card.thumbnail) {
           inner += `<div class="pb-card-file-preview"><img src="${card.thumbnail}" style="width:100%;display:block;"></div>`;
         } else {
           inner += `<div class="pb-card-file-preview" data-pdf="${card.id}"></div>`;
         }
-      } else if (card.dataUrl && ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) {
-        inner += `<img class="pb-card-image" src="${card.dataUrl}" alt="">`;
+      } else if (src && ['jpg','jpeg','png','gif','webp','bmp','svg'].includes(ext)) {
+        inner += `<img class="pb-card-image" src="${src}" alt="">`;
       }
       inner += `<div class="pb-card-file-info"><div class="pb-file-name">${esc(card.fileName || 'file')}</div><div class="pb-file-size">${formatSize(card.fileSize || 0)}</div></div>`;
     }
@@ -325,26 +333,40 @@ export function initPinboard() {
     if (!readOnly) {
       el.addEventListener('dragover', e => { e.preventDefault(); el.style.outline = '2px solid #5b9bd5'; });
       el.addEventListener('dragleave', () => { el.style.outline = ''; });
-      el.addEventListener('drop', e => {
+      el.addEventListener('drop', async e => {
         e.preventDefault();
         e.stopPropagation();
         el.style.outline = '';
         if (e.dataTransfer.files.length) {
           const file = e.dataTransfer.files[0];
-          const reader = new FileReader();
-          reader.onload = ev => {
-            card.dataUrl = ev.target.result;
+          const isVideo = file.type.startsWith('video/');
+          const isLarge = file.size > 512 * 1024;
+
+          async function applyFile(url, isBlob) {
+            if (isBlob) { card.blobUrl = url; delete card.dataUrl; }
+            else { card.dataUrl = url; delete card.blobUrl; }
             card.fileName = file.name;
             card.fileSize = file.size;
             card.fileType = file.type;
             if (file.type.startsWith('image/')) card.type = 'image';
+            else if (isVideo) card.type = 'video';
             card.thumbnail = '';
             const newEl = createCardEl(card);
             el.replaceWith(newEl);
             save();
             setTimeout(renderPdfThumbnails, 100);
-          };
-          reader.readAsDataURL(file);
+          }
+
+          if (isVideo || isLarge) {
+            try {
+              const blobUrl = await uploadFile(file);
+              await applyFile(blobUrl, true);
+            } catch (err) { alert('Upload failed: ' + err.message); }
+          } else {
+            const reader = new FileReader();
+            reader.onload = ev => applyFile(ev.target.result, false);
+            reader.readAsDataURL(file);
+          }
         }
       });
     }
@@ -549,18 +571,35 @@ export function initPinboard() {
   // file inputs
   function handleFiles(files, wx, wy) {
     let offsetY = 0;
-    Array.from(files).forEach(file => {
-      const reader = new FileReader();
-      reader.onload = e => {
-        const type = file.type.startsWith('image/') ? 'image' : 'file';
-        addCard(type, wx, wy + offsetY, {
-          dataUrl: e.target.result,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type
-        });
-      };
-      reader.readAsDataURL(file);
+    Array.from(files).forEach(async file => {
+      const isVideo = file.type.startsWith('video/');
+      const isLarge = file.size > 512 * 1024;
+      let type = file.type.startsWith('image/') ? 'image' : isVideo ? 'video' : 'file';
+
+      if (isVideo || isLarge) {
+        try {
+          const blobUrl = await uploadFile(file);
+          addCard(type, wx, wy + offsetY, {
+            blobUrl,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type
+          });
+        } catch (e) {
+          alert('Upload failed: ' + e.message);
+        }
+      } else {
+        const reader = new FileReader();
+        reader.onload = e => {
+          addCard(type, wx, wy + offsetY, {
+            dataUrl: e.target.result,
+            fileName: file.name,
+            fileSize: file.size,
+            fileType: file.type
+          });
+        };
+        reader.readAsDataURL(file);
+      }
       offsetY += 240;
     });
   }

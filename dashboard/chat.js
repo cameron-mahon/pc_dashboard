@@ -1,6 +1,7 @@
 import { get, put, esc } from './store.js';
 import { currentUser, isVisitor } from './auth.js';
 import { getCrabPhoto } from './userbar.js';
+import { uploadFile } from './upload.js';
 import 'emoji-picker-element';
 
 const KEY = 'chat';
@@ -56,7 +57,9 @@ function msgHTML(m, prev) {
   const me = whoAmI();
   const isMe = m.who === me;
   const grouped = prev && prev.who === m.who;
-  const content = m.img
+  const content = m.video
+    ? `<video src="${esc(m.video)}" controls preload="metadata" style="max-width:100%;border-radius:8px;"></video>`
+    : m.img
     ? `<img src="${esc(m.img)}" alt="">`
     : renderText(m.text);
   if (isMe) {
@@ -242,17 +245,26 @@ function bindToolbar(panel) {
     setTimeout(() => document.addEventListener('click', close), 0);
   });
 
-  // Image upload
+  // Image/video upload
   const imgInput = toolbar.querySelector('[data-chat-img-input]');
-  imgInput.addEventListener('change', () => {
+  imgInput.addEventListener('change', async () => {
     const file = imgInput.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      push({ who: whoAmI(), img: reader.result });
-      imgInput.value = '';
-    };
-    reader.readAsDataURL(file);
+    const isVideo = file.type.startsWith('video/');
+    const isLarge = file.size > 512 * 1024;
+    if (isVideo || isLarge) {
+      try {
+        const url = await uploadFile(file);
+        push({ who: whoAmI(), [isVideo ? 'video' : 'img']: url });
+      } catch (e) { alert('Upload failed: ' + e.message); }
+    } else {
+      const reader = new FileReader();
+      reader.onload = () => {
+        push({ who: whoAmI(), img: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+    imgInput.value = '';
   });
 
   // GIF picker
