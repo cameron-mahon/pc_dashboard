@@ -99,6 +99,40 @@ module.exports = async function handler(req, res) {
     return res.json({ ok: true, migrated: false });
   }
 
+  if (action === 'backfill-crabs') {
+    const CRABS = [
+      'Yeti','Maryland Blue','Dungeness','Florida Stone','Peekytoe',
+      'Jonah','Japanese Spider','Snow','Brown','Chesapeake Blue',
+      'Mud','Mangrove','Flower','Ghost','Fiddler','Red Rock',
+      'Southern Kelp','Sheep','Box','Calico','Arrow','Green',
+      'Velvet Belly','Halloween Moon','Soldier','Mitten','Shore',
+      'Marble','Yellowline Arrow','Spider Decorator','Alaskan King',
+      'Red King','Blue King','Golden King','Coconut','Hermit',
+      'Porcelain','Mole','Squat Lobster','Tasmanian Giant',
+      'Spiny King','Pom Pom','Horseshoe','Triops'
+    ];
+    const users = await getUsers();
+    const fixed = [];
+    for (const u of users) {
+      if (u.crab) continue;
+      if (CRABS.includes(u.name)) {
+        u.crab = u.name;
+        fixed.push(`${u.name} → ${u.crab}`);
+      }
+    }
+    // first account was assigned CRABS[0]
+    const first = users.reduce((a, b) => (a.created || 0) < (b.created || 0) ? a : b, users[0]);
+    if (first && !first.crab) {
+      const takenCrabs = new Set(users.filter(u => u.crab).map(u => u.crab));
+      if (!takenCrabs.has(CRABS[0])) {
+        first.crab = CRABS[0];
+        fixed.push(`${first.name} → ${first.crab} (first account)`);
+      }
+    }
+    if (fixed.length) await saveUsers(users);
+    return res.json({ ok: true, fixed });
+  }
+
   if (action === 'signup') {
     const inviteCode = process.env.PC_INVITE_CODE;
     if (!inviteCode) return res.json({ ok: false, error: 'Signup is disabled' });
@@ -195,14 +229,7 @@ module.exports = async function handler(req, res) {
     const users = await getUsers();
     const user = users.find(u => u.id === callerId);
     if (!user) return res.json({ ok: false, error: 'User not found' });
-    if (name && name.trim()) user.name = name.trim();
-    if (email && email.trim()) {
-      const emailLower = email.trim().toLowerCase();
-      const taken = users.find(u => u.id !== callerId && u.email && u.email.toLowerCase() === emailLower);
-      if (taken) return res.json({ ok: false, error: 'Email already in use' });
-      user.email = emailLower;
-    }
-    if (!user.crab && user.name) {
+    if (!user.crab) {
       const CRABS = [
         'Yeti','Maryland Blue','Dungeness','Florida Stone','Peekytoe',
         'Jonah','Japanese Spider','Snow','Brown','Chesapeake Blue',
@@ -215,6 +242,13 @@ module.exports = async function handler(req, res) {
         'Spiny King','Pom Pom','Horseshoe','Triops'
       ];
       if (CRABS.includes(user.name)) user.crab = user.name;
+    }
+    if (name && name.trim()) user.name = name.trim();
+    if (email && email.trim()) {
+      const emailLower = email.trim().toLowerCase();
+      const taken = users.find(u => u.id !== callerId && u.email && u.email.toLowerCase() === emailLower);
+      if (taken) return res.json({ ok: false, error: 'Email already in use' });
+      user.email = emailLower;
     }
     await saveUsers(users);
     return res.json({ ok: true, user: { id: user.id, name: user.name, role: user.role, email: user.email || null, crab: user.crab || null } });
