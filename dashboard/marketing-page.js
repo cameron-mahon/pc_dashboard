@@ -1,6 +1,7 @@
 import { get, put, uid, esc } from './store.js';
 import { openModal } from './modal.js';
 import { currentUser, isVisitor } from './auth.js';
+import { uploadFile } from './upload.js';
 
 export function initMarketing() {
   if (!document.querySelector('[data-marketing]')) return;
@@ -495,7 +496,11 @@ export function initMarketing() {
     });
   });
 
-  // render image grids (logos + images)
+  function isVideoFile(item) {
+    return (item.type && item.type.startsWith('video/')) || /\.(mp4|mov|webm|avi)$/i.test(item.name);
+  }
+
+  // render image/video grids (logos + images)
   function renderGrid(category) {
     const grid = baPanel.querySelector(`[data-ba-grid="${category}"]`);
     const ba = getBA();
@@ -504,22 +509,30 @@ export function initMarketing() {
       grid.innerHTML = '<div class="ba-empty">No assets yet</div>';
       return;
     }
-    grid.innerHTML = items.map(item =>
-      `<div class="ba-tile" data-ba-id="${item.id}">
-        <img src="${item.data}" alt="${esc(item.name)}">
+    grid.innerHTML = items.map(item => {
+      const src = item.url || item.data;
+      const media = isVideoFile(item)
+        ? `<video src="${esc(src)}" controls preload="metadata" style="width:100%;border-radius:6px;"></video>`
+        : `<img src="${esc(src)}" alt="${esc(item.name)}">`;
+      return `<div class="ba-tile" data-ba-id="${item.id}">
+        ${media}
         <div class="ba-tile-name">${esc(item.name)}</div>
         ${viewOnly ? '' : '<span class="x">&times;</span>'}
-      </div>`
-    ).join('');
+      </div>`;
+    }).join('');
     grid.querySelectorAll('.ba-tile').forEach(tile => {
       const id = tile.dataset.baId;
-      tile.querySelector('img').addEventListener('click', () => {
+      const mediaEl = tile.querySelector('img, video');
+      if (mediaEl) mediaEl.addEventListener('click', () => {
         const item = getBA()[category].find(i => i.id === id);
         if (!item) return;
+        const src = item.url || item.data;
         const overlay = document.createElement('div');
         overlay.className = 'ba-tile-preview';
-        overlay.innerHTML = `<img src="${item.data}" alt="${esc(item.name)}">`;
-        overlay.addEventListener('click', () => overlay.remove());
+        overlay.innerHTML = isVideoFile(item)
+          ? `<video src="${esc(src)}" controls autoplay style="max-width:90vw;max-height:90vh;"></video>`
+          : `<img src="${esc(src)}" alt="${esc(item.name)}">`;
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
         document.body.appendChild(overlay);
       });
       const x = tile.querySelector('.x');
@@ -537,21 +550,18 @@ export function initMarketing() {
   baPanel.querySelectorAll('[data-ba-upload]').forEach(input => {
     const category = input.dataset.baUpload;
     if (viewOnly) { input.closest('.ba-upload-btn').style.display = 'none'; return; }
-    input.addEventListener('change', () => {
+    input.addEventListener('change', async () => {
       const files = Array.from(input.files);
       if (!files.length) return;
-      let loaded = 0;
-      files.forEach(file => {
-        const reader = new FileReader();
-        reader.onload = () => {
+      for (const file of files) {
+        try {
+          const url = await uploadFile(file);
           const ba = getBA();
-          ba[category].push({ id: uid(), name: file.name, data: reader.result });
+          ba[category].push({ id: uid(), name: file.name, url, type: file.type });
           saveBA(ba);
-          loaded++;
-          if (loaded === files.length) renderGrid(category);
-        };
-        reader.readAsDataURL(file);
-      });
+        } catch (e) { alert('Upload failed: ' + e.message); }
+      }
+      renderGrid(category);
       input.value = '';
     });
   });

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Carb — Sign In</title>
+<style>
+  body{display:flex;align-items:center;justify-content:center;min-height:100vh;}
+  .login-card{
+    width:360px;max-width:92vw;background:#fff;
+    border:1px solid var(--border);border-radius:14px;
+    padding:32px;box-shadow:0 8px 30px rgba(0,0,0,0.07);
+  }
+  .login-brand{
+    font-size:20px;font-weight:700;letter-spacing:-0.4px;
+    color:var(--accent);text-align:center;margin-bottom:6px;
+  }
+  .login-sub{
+    font-size:12px;color:var(--text-3);text-align:center;margin-bottom:24px;
+  }
+  .login-field{margin-bottom:14px;}
+  .login-field label{
+    display:block;font-size:11px;font-weight:600;
+    text-transform:uppercase;letter-spacing:0.3px;
+    color:var(--gold);margin-bottom:5px;
+  }
+  .login-error{
+    font-size:12px;color:var(--red);text-align:center;
+    margin-bottom:12px;min-height:18px;
+  }
+  .login-actions{display:flex;gap:8px;margin-top:20px;}
+  .login-actions .btn{flex:1;justify-content:center;padding:9px 0;font-size:13px;}
+  .login-toggle{
+    font-size:12px;color:var(--text-3);text-align:center;
+    margin-top:16px;cursor:pointer;transition:color 120ms;
+  }
+  .login-toggle:hover{color:var(--accent);}
+  .login-toggle span{color:var(--accent);font-weight:600;}
+  .login-role-note{
+    font-size:11px;color:var(--text-4);text-align:center;
+    margin-top:8px;font-style:italic;
+  }
+</style>
+  <script type="module" crossorigin src="/assets/login-D3FRBrN2.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/auth-CjSnojJH.js">
+  <link rel="stylesheet" crossorigin href="/assets/auth-DuwCgBJf.css">
+</head>
+<body>
+
+<div class="login-card">
+  <div class="login-brand">project carb</div>
+  <div class="login-sub" data-sub>Sign in to your workspace</div>
+
+  <div class="login-error" data-error></div>
+
+  <div class="login-field" data-email-field>
+    <label>Email</label>
+    <input type="email" data-email placeholder="you@example.com" autocomplete="email">
+  </div>
+  <div class="login-field" data-name-field style="display:none;">
+    <label>Your Name</label>
+    <input data-name placeholder="Your name" autocomplete="name">
+  </div>
+  <div class="login-field" data-assigned-field style="display:none;">
+    <label>Your Crab</label>
+    <div data-assigned-name style="font-size:16px;font-weight:700;color:var(--accent);padding:8px 0;"></div>
+  </div>
+  <div class="login-field" data-invite-field style="display:none;">
+    <label>Invite Code</label>
+    <input data-invite placeholder="Invite code" autocomplete="off">
+  </div>
+  <div class="login-field">
+    <label>Password</label>
+    <input type="password" data-password placeholder="Password">
+  </div>
+
+  <div class="login-actions">
+    <button class="btn btn-add" data-submit>Sign In</button>
+  </div>
+
+  <div class="login-toggle" data-toggle>
+    Don't have an account? <span>Sign up</span>
+  </div>
+  <div class="login-role-note" data-role-note></div>
+  <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;text-align:center;">
+    <div data-visit-prompt style="display:none;margin-bottom:10px;">
+      <label style="display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;color:var(--gold);margin-bottom:5px;">Visitor Password</label>
+      <input type="password" data-visit-password placeholder="Password" style="width:100%;">
+      <div class="login-error" data-visit-error></div>
+    </div>
+    <button class="btn btn-ghost" data-visit style="width:100%;justify-content:center;font-size:12px;color:var(--text-3);">Just looking? <strong>Visit as Pea Crab</strong></button>
+  </div>
+</div>
+
+</body>
+</html>
